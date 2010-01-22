@@ -2,13 +2,15 @@ require 'date'
 
 class MarsDateTime
 
+  VERSION = "1.0.5"
+
   include Comparable
 
   MSEC_PER_SOL   = 88775244
   SOLS_PER_MYEAR = 668.5921
   MSEC_PER_DAY   = 86400000
 
-  FAKE_MSEC_PER_MYEAR = (668*MSEC_PER_SOL).round
+  FAKE_MSEC_PER_MYEAR = (668*MSEC_PER_SOL)
 
   TimeStretch    = MSEC_PER_SOL/MSEC_PER_DAY.to_f
 
@@ -29,12 +31,11 @@ class MarsDateTime
   JulianDay1 = 1721424
 
   attr_reader :year, :month, :sol, :epoch_sol, :year_sol
+  attr_reader :shr, :smin, :ssec    # stretched time
   attr_reader :mems
 
   attr_reader :dow, :day_of_week
   attr_reader :mhrs, :mmin, :msec
-  attr_reader :thrs, :tmin, :tsec    # Terrestrial hrs, min, sec
-  attr_reader :seconds
 
   alias myear year
   alias hr   mhrs
@@ -50,12 +51,12 @@ class MarsDateTime
 
   def self.now
     d = DateTime.now
-    MarsDateTime.new(d.year, d.month, d.day, d.hour, d.min, d.sec)
+    MarsDateTime.new(d)
   end
 
   def self.today
     d = DateTime.now
-    MarsDateTime.new(d.year, d.month, d.day, 0, 0, 0)
+    MarsDateTime.new(d)
   end
 
   def leaps(myr)
@@ -107,6 +108,7 @@ class MarsDateTime
       else
         raise "Bad params: #{params.inspect}"
     end
+    compute_stretched
   end
 
   def check_ymshms(my, mm, msol, mhr=0, mmin=0, msec=0)
@@ -136,6 +138,15 @@ class MarsDateTime
     @dow = (@epoch_sol-1) % 7
     @day_of_week = Week[@dow]
     @year_sol  = (mm-1)*28 + msol
+  end
+
+  def compute_stretched
+    # Handle stretched time...
+    sec = @mhrs*3600 + @mmin*60 + @msec
+    sec /= TimeStretch
+    @shr,  sec = sec.divmod(3600)
+    @smin, sec = sec.divmod(60)
+    @ssec = sec.to_i
   end
 
   def init_mems(mems)
@@ -246,9 +257,12 @@ class MarsDateTime
         when "%d"; final << zsol
         when "%e"; final << ('%2d' % @sol)
         when "%F"; final << "#@year-#@month-#@sol"
+        when "%H"; final << zhh
         when "%j"; final << @year_sol.to_s
         when "%m"; final << @month.to_s
+        when "%M"; final << zmm
         when "%s"; final << (@mems*1000).to_i.to_s
+        when "%S"; final << zss
         when "%u"; final << (@dow + 1).to_s
         when "%U"; final << (@year_sol/7 + 1).to_s
         when "%w"; final << @dow.to_s
@@ -265,6 +279,19 @@ class MarsDateTime
     final
   end
   
+=begin
+    *  %I - Hour of the day, 12-hour clock (01..12)
+    *  %p - Meridian indicator (``AM''  or  ``PM'')
+       %U - Week  number  of the current year,
+               starting with the first Sunday as the first
+               day of the first week (00..53)
+       %W - Week  number  of the current year,
+               starting with the first Monday as the first
+               day of the first week (00..53)
+    *  %y - Year without a century (00..99)
+       %Z - Time zone name
+
+=end
 
 end
 

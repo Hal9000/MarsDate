@@ -1,5 +1,6 @@
 require 'marsdate'
 
+require 'rubygems'
 require 'test/unit'
 require 'shoulda'
 require 'pp'
@@ -180,7 +181,7 @@ class MarsDateTest < Test::Unit::TestCase
       m1 = MarsDateTime.new(e1)
       e2 = m1.earth_date
       diff = e2 - e1
-      my_assert(diff.abs <= 1.0)
+      my_assert(diff.abs <= 0.01)
     end
   end
 
@@ -190,7 +191,7 @@ class MarsDateTest < Test::Unit::TestCase
       e1 = m1.earth_date
       m2 = MarsDateTime.new(e1)
       diff = m2 - m1
-      my_assert(diff.abs < 1.0)
+      my_assert(diff.abs < 0.01)
     end
   end
 
@@ -247,7 +248,7 @@ class MarsDateTest < Test::Unit::TestCase
         m1 = MarsDateTime.new(e1)
         e2 = m1.earth_date
         diff = e2 - e1
-        my_assert(diff.abs <= 1.0) { STDERR.puts "    diff = #{diff}" }
+        my_assert(diff.abs <= 0.01) { STDERR.puts "    diff = #{diff}" }
         e1 += 1
       end
     end
@@ -355,20 +356,20 @@ class MarsDateTest < Test::Unit::TestCase
     m2 = MarsDateTime.new(1062,20,17) 
     should "allow subtraction of another date" do
       m = md - m2
-      assert( (m - 3.0) < 0.1)   # sols
+      assert( (m - 3.0) < 0.01)   # sols
     end
     should "allow subtraction of an Earth date" do
       e = DateTime.new(1998, 3, 12, 16, 45, 0)
       m = md - e
-      assert( (m - 3.0) < 0.1)   # sols
+      assert( (m - 3.0) < 0.01)   # sols
     end
     should "allow subtraction of a Fixnum" do
       m = md - 3                 # sols
-      assert( (m - m2) < 0.1)
+      assert( (m - m2) < 0.01)
     end
     should "allow subtraction of a Float" do
       m = md - 3.0               # sols
-      assert( (m - m2) < 0.1)
+      assert( (m - m2) < 0.01)
     end
   end
 
