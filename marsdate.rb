@@ -2,7 +2,7 @@ require 'date'
 
 class MarsDateTime
 
-  VERSION = "1.0.5"
+  VERSION = "1.0.6"
 
   include Comparable
 
@@ -25,10 +25,10 @@ class MarsDateTime
 
   Week   = %w[ Sunday Monday Tuesday Wednesday Thursday Friday Saturday ]
 
-  EpochMCE  = DateTime.new(1,1,22)
+  EpochMCE  = DateTime.new(1,1,21)
   EpochCE   = DateTime.new(1,1,1)
-  EpochDiffSec = (EpochMCE - EpochCE).to_i*86400
-  JulianDay1 = 1721424
+  FudgeOffset = 67784 + 44000 + 1099 + 87 - 56
+  JulianDay1 = 1721443  # was ...24
 
   attr_reader :year, :month, :sol, :epoch_sol, :year_sol
   attr_reader :shr, :smin, :ssec    # stretched time
@@ -47,6 +47,12 @@ class MarsDateTime
     return true if (myear % 1000 == 0)
     return false if (myear % 100 == 0)
     return true
+  end
+
+  def self.sols_in_month(m, year)
+    return 28 if m < 24
+    return 25 if leap?(year)
+    return 24
   end
 
   def self.now
@@ -70,13 +76,15 @@ class MarsDateTime
   end
 
   def inspect
-    "#@year/#{'%02d'%@month}/#{'%02d'%@sol} " + 
-    "(#@year_sol,#@epoch_sol) #@day_of_week " +
-    "#{'%02d'%@mhrs}:#{'%02d'%@mmin}:#{'%02d'%@msec}"
+    time = ('%02d' % @mhrs) + ":" + ('%02d' % @mmin) + ":" + ('%02d' % @msec)
+    "#@year/#{'%02d' % @month}/#{'%02d' % @sol} " + 
+    "(#@year_sol, #@epoch_sol) #@day_of_week " +
+    time
   end
 
   def to_s
-    "#@day_of_week, #{Months[@month]} #@sol, #@year"
+    time = self.strftime('%H:%M:%S [%P:%Q:%R]')
+    "#@day_of_week, #{Months[@month]} #@sol, #@year at #{time}"
   end
 
   def leap?(myear)
@@ -130,7 +138,6 @@ class MarsDateTime
     zsol = msol - 1  # z means zero-based
     zmy  = my - 1    # my means Martian year
     zesol = zmy*668 + leaps(my-1) + (mm-1)*28 + zsol
-#   Assume no stretched time for now!
 #   @mems is "Martian (time since) epoch in milliseconds"
     @mems = zesol*MSEC_PER_SOL + (mhr*3600 + mmin*60 + msec)*1000
     @year, @month, @sol, @mhrs, @mmin, @msec = my, mm, msol, mhr, mmin, msec
@@ -146,7 +153,7 @@ class MarsDateTime
     sec /= TimeStretch
     @shr,  sec = sec.divmod(3600)
     @smin, sec = sec.divmod(60)
-    @ssec = sec.to_i
+    @ssec = sec.round
   end
 
   def init_mems(mems)
@@ -190,7 +197,7 @@ class MarsDateTime
   def init_datetime(dt)
     days = dt.jd - JulianDay1
     secs = days*86400 + dt.hour*3600 + dt.min*60 + dt.sec
-    secs -= 21*86400       # epoch diff
+    secs -= FudgeOffset
     init_mems(secs*1000)
   end
 
@@ -231,7 +238,7 @@ class MarsDateTime
   end
 
   def earth_date
-    secs = @mems/1000 + EpochDiffSec
+    secs = @mems/1000 + FudgeOffset
     days,secs = secs.divmod(86400)
     hrs, secs = secs.divmod(3600)
     min, secs = secs.divmod(60)
@@ -245,9 +252,13 @@ class MarsDateTime
     final = ""
     zmonth = '%02d' % @month
     zsol = '%02d' % @sol
-    zhh = '%02d' % @mhrs
+    zhh = '%02d' % @mhrs  # stretched
     zmm = '%02d' % @mmin
     zss = '%02d' % @msec
+    zhc = '%02d' % @shr   # canonical
+    zmc = '%02d' % @smin
+    zsc = '%02d' % @ssec
+   
     pieces.each do |piece|
       case piece
         when "%a"; final << @day_of_week[0..2]
@@ -261,7 +272,7 @@ class MarsDateTime
         when "%j"; final << @year_sol.to_s
         when "%m"; final << @month.to_s
         when "%M"; final << zmm
-        when "%s"; final << (@mems*1000).to_i.to_s
+        when "%s"; final << @msec  # was: (@mems*1000).to_i.to_s
         when "%S"; final << zss
         when "%u"; final << (@dow + 1).to_s
         when "%U"; final << (@year_sol/7 + 1).to_s
@@ -272,6 +283,9 @@ class MarsDateTime
         when "%n"; final << "\n"
         when "%t"; final << "\t"
         when "%%"; final << "%"
+        when "%P"; final << ("%02d" % @shr)
+        when "%Q"; final << ("%02d" % @smin)
+        when "%R"; final << ("%02d" % @ssec)
         else
           final << piece
       end
