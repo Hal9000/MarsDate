@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'marsdate'
-  s.version     = `lib/marsdate`  # Emits version number
+  s.version     = `./bin/marsdate-version`  # Emits version number
   s.licenses    = ['Ruby License']
   s.summary     = "Date/time library for Mars"
   s.description = <<-EOS
