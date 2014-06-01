@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'marsdate'
-  s.version     = '1.0.7'
+  s.version     = `lib/marsdate`  # Emits version number
   s.licenses    = ['Ruby License']
   s.summary     = "Date/time library for Mars"
   s.description = <<-EOS
@@ -10,7 +10,8 @@ Gem::Specification.new do |s|
                   EOS
   s.authors     = ["Hal Fulton"]
   s.email       = 'rubyhacker@gmail.com'
-  s.files       = ["lib/marsdate.rb"]
+  s.files       = ["lib/marsdate.rb", "bin/mcal.rb", "bin/mkcal.rb", "bin/mtcon.rb", 
+                   "bin/mtoday.rb"]
   s.homepage    = 'https://github.com/Hal9000/marsdate'
 end
 

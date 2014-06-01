@@ -2,7 +2,7 @@ require 'date'
 
 class MarsDateTime
 
-  VERSION = "1.0.6"
+  VERSION = "1.0.8"
 
   include Comparable
 
@@ -272,7 +272,7 @@ class MarsDateTime
         when "%j"; final << @year_sol.to_s
         when "%m"; final << @month.to_s
         when "%M"; final << zmm
-        when "%s"; final << @msec  # was: (@mems*1000).to_i.to_s
+        when "%s"; final << @msec.to_s  # was: (@mems*1000).to_i.to_s
         when "%S"; final << zss
         when "%u"; final << (@dow + 1).to_s
         when "%U"; final << (@year_sol/7 + 1).to_s
@@ -309,3 +309,6 @@ class MarsDateTime
 
 end
 
+if $0 == __FILE__
+  puts MarsDateTime::VERSION
+end
