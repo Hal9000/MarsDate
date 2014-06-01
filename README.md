@@ -1,4 +1,5 @@
-# MarsDate: A Ruby date/time library for Mars
+# MarsDate
+##   A Ruby date/time library for Mars
 
 This library is based on the Martian Common Era calendar by Hal Fulton.
 Its functionality closely follows that of Ruby's Time class.
