@@ -1,4 +1,4 @@
-require './marsdate'
+require 'marsdate'
 
 require 'rubygems'
 require 'test/unit'

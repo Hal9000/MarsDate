@@ -270,7 +270,7 @@ class MarsDateTime
         when "%F"; final << "#@year-#@month-#@sol"
         when "%H"; final << zhh
         when "%j"; final << @year_sol.to_s
-        when "%m"; final << @month.to_s
+        when "%m"; final << zmonth  # @month.to_s
         when "%M"; final << zmm
         when "%s"; final << @msec.to_s  # was: (@mems*1000).to_i.to_s
         when "%S"; final << zss
