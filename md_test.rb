@@ -1,11 +1,11 @@
-require './marsdate'
+require './lib/marsdate'
 
 require 'rubygems'
-require 'test/unit'
+require 'minitest/autorun'
 require 'shoulda'
 require 'pp'
 
-class MarsDateTest < Test::Unit::TestCase
+class MarsDateTest < MiniTest::Unit::TestCase
 
   def my_assert(expr)
     if !expr && block_given?

@@ -2,7 +2,7 @@ require 'date'
 
 class MarsDateTime
 
-  VERSION = "1.0.8"
+  VERSION = "1.0.9"
 
   include Comparable
 
@@ -267,7 +267,7 @@ class MarsDateTime
         when "%B"; final << month_name
         when "%d"; final << zsol
         when "%e"; final << ('%2d' % @sol)
-        when "%F"; final << "#@year-#@month-#@sol"
+        when "%F"; final << "#@year-#{zmonth}-#{zsol}"
         when "%H"; final << zhh
         when "%j"; final << @year_sol.to_s
         when "%m"; final << @month.to_s
