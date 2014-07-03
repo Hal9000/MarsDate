@@ -2,7 +2,7 @@ require 'date'
 
 class MarsDateTime
 
-  VERSION = "1.0.8"
+  VERSION = "1.1.0"
 
   include Comparable
 
@@ -49,6 +49,14 @@ class MarsDateTime
     return true
   end
 
+  def self.short?(myear)  # short year
+    !leap?(myear)
+  end
+
+  def self.long?(myear)  # long year
+    leap?(myear)
+  end
+
   def self.sols_in_month(m, year)
     return 28 if m < 24
     return 25 if leap?(year)
@@ -67,7 +75,7 @@ class MarsDateTime
 
   def leaps(myr)
     n = 0
-    1.upto(myr) {|i| n+=1 if leap?(i) } 
+    1.upto(myr) {|i| n+=1 if MarsDateTime.leap?(i) } 
     n
   end
 
@@ -87,8 +95,16 @@ class MarsDateTime
     "#@day_of_week, #{Months[@month]} #@sol, #@year at #{time}"
   end
 
-  def leap?(myear)
-    MarsDateTime.leap?(myear)    # DRY
+  def leap?
+    MarsDateTime.leap?(@year)    # DRY
+  end
+
+  def short?
+    ! leap?
+  end
+
+  def long?
+    leap?
   end
 
   def month_name
@@ -127,7 +143,7 @@ class MarsDateTime
     text << "hour #{mhr} is out of range" unless (0..24).include? mhr
     text << "minute #{mmin} is out of range" unless (0..59).include? mmin
     text << "second #{msec} is out of range" unless (0..59).include? msec
-    if !leap?(my) && mm == 24 && msol > 24
+    if !MarsDateTime.leap?(my) && mm == 24 && msol > 24
       text << "sol #{msol} is invalid in a non-leap year" 
     end
     raise text unless text.empty?
@@ -160,7 +176,7 @@ class MarsDateTime
     full_years = 0
     loop do
       millisec = FAKE_MSEC_PER_MYEAR
-      millisec += MSEC_PER_SOL if leap?(full_years+1)
+      millisec += MSEC_PER_SOL if MarsDateTime.leap?(full_years+1)
       break if mems < millisec
       mems -= millisec
       # puts "Subtracting #{millisec} -- one full year => #{mems}"
