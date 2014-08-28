@@ -1,3 +1,4 @@
+$: << "lib"
 require 'marsdate'
 
 require 'rubygems'
@@ -70,21 +71,20 @@ end
 describe "Earth date May 23, 1961" do
   e = DateTime.new(1961,5,23)
   m = MarsDateTime.new(e)
-  it "should yield a Martian Friday" do
-    assert_equal(m.day_of_week,"Friday")
+  it "should yield a Martian Thursday" do
+    assert_equal(m.day_of_week,"Thursday")
   end
 end
 
 describe "Earth date May 24, 1961" do
   e = DateTime.new(1961,5,24)
   m = MarsDateTime.new(e)
-  it "should yield a Martian Saturday" do
-    assert_equal(m.day_of_week,"Saturday")
-#     my_assert_equal(m.day_of_week,"Friday") { p m }
+  it "should yield a Martian Friday" do
+    assert_equal(m.day_of_week,"Friday")
   end
 end
 
-describe "A Martian date/time (y,m,s,h,m,s)" do   ###
+describe "A Martian date/time (y,m,s,h,m,s)" do
   m = MarsDateTime.new(1043,2,15,12,34,45)
   it "should set all its accessors properly" do
     assert_equal(1043,m.myear)
@@ -100,14 +100,14 @@ describe "A Martian date/time (y,m,s,h,m,s)" do   ###
   end
 end
 
-describe "The 2007 Martian equinox" do  ###
-  e = DateTime.new(2007,12,9,17,20,0)
+describe "The 2007 Martian equinox" do
+  e = DateTime.new(2007,12,9,17,20,0).new_offset(-5)
   m = MarsDateTime.new(e)
   m11 = MarsDateTime.new(1068,1,1)
   it "should fall on or near 1/1 (MCE)" do
     diff = (m11-m).abs
-    flag = diff < 1.5
-    assert(flag)
+    flag = diff < 1.0
+    assert(flag, "Difference: #{diff}")
   end
 end
 
@@ -171,7 +171,7 @@ describe "The earth_date convertor" do
     e = m.earth_date
     assert_equal(1,e.year)
     assert_equal(1,e.month)
-    assert((e.day-22).abs <= 1)
+    assert((e.day-22).abs <= 1, "e - 22 = #{e.day - 22}")
   end
 end
 
@@ -181,7 +181,7 @@ describe "An Earthly date" do
     m1 = MarsDateTime.new(e1)
     e2 = m1.earth_date
     diff = e2 - e1
-    assert(diff.abs <= 0.01)
+    assert(diff.abs <= 0.01, "Difference = #{diff}")
   end
 end
 
@@ -203,7 +203,7 @@ describe "An arbitrary Martian date" do
     assert_equal("Mon",m1.strftime("%a"))
     assert_equal("Monday",m1.strftime("%A"))
     assert_equal("Aug",m1.strftime("%b"))
-    assert_equal("August",m1.strftime("%B"))
+    assert_equal("M-August",m1.strftime("%B"))
     assert_equal("24",m1.strftime("%d"))
     assert_equal("24",m1.strftime("%e"))
     assert_equal("1069-15-24",m1.strftime("%F"))
@@ -227,7 +227,7 @@ describe "An arbitrary Martian date" do
     assert_equal(" 4",m2.strftime("%e"))
     assert_equal("933-06-04",m2.strftime("%F"))
     assert_equal("144",m2.strftime("%j"))
-    assert_equal("6",m2.strftime("%m"))
+    assert_equal("06",m2.strftime("%m"))
     assert_equal("0",m2.strftime("%s"))
     assert_equal("4",m2.strftime("%u"))
     assert_equal("21",m2.strftime("%U"))
@@ -292,56 +292,62 @@ end
 describe "Converting 1961/5/31 to Martian" do
   e = DateTime.new(1961,5,31) 
   m = MarsDateTime.new(e)
-  it "should yield M-April 10, 1043 MCE" do
-    assert(m.year == 1043)
-    assert(m.month == 7)
-    assert(m.sol == 10)
+  it "should yield Friday M-April 9, 1043 MCE" do
+    assert(m.year == 1043, "bad year: #{m.year}")
+    assert(m.month == 7, "bad month: #{m.month}")
+    assert(m.sol == 9, "bad sol: #{m.sol}")
   end
   it "should give a Martian Saturday" do
-    assert(m.day_of_week == "Saturday")
+    assert(m.day_of_week == "Friday", "got: #{m.day_of_week}")
   end
 end
 
 describe "The 1609 Martian equinox" do
-  e = DateTime.new(1609,3,12)
+  e = DateTime.new(1609,3,12).new_offset(-5)
   m = MarsDateTime.new(e)
   m11 = MarsDateTime.new(856,1,1)
   it "should fall on or near 1/1 (MCE)" do
     diff = (m11-m).abs
-    assert(diff < 1.5)
+    assert(diff < 1.0, "Difference = #{diff}")
   end
 end
 
 describe "The 1902 Martian equinox" do
-  e = DateTime.new(1902,8,12,7,0,0)
+  e = DateTime.new(1902,8,12,7,0,0).new_offset(-5)
   m = MarsDateTime.new(e)
   m11 = MarsDateTime.new(1012,1,1)
   it "should fall on or near 1/1 (MCE)" do
     diff = (m11-m).abs
-    assert(diff < 1.5)
+    assert(diff < 1.0, "Difference: #{diff}")
   end
 end
 
 describe "A Martian date" do
+  puts "***** Entering problem test..."
   m = MarsDateTime.new(1068,1,1)
+  p m
   describe "plus 7 days" do
     m2 = m + 7
+    p m2
     it "should be the same day of the week" do
       assert_equal(m.day_of_week, m2.day_of_week)
     end
   end
   describe "plus 14 days" do
     m3 = m + 14
+    p m3
     it "should be the same day of the week" do
       assert_equal(m.day_of_week, m3.day_of_week)
     end
   end
   describe "plus 21 days" do
     m4 = m + 21
+    p m4
     it "should be the same day of the week" do
       assert_equal(m.day_of_week, m4.day_of_week)
     end
   end
+  puts "***** Exiting problem test"
 end
 
 describe "Martian April 1, 1043" do

@@ -2,11 +2,11 @@ require 'date'
 
 class MarsDateTime
 
-  VERSION = "1.1.0"
+  VERSION = "1.1.2"
 
   include Comparable
 
-  MSEC_PER_SOL   = 88775244
+  MSEC_PER_SOL   = 88775244 # .09   # Really + 0.09
   SOLS_PER_MYEAR = 668.5921
   MSEC_PER_DAY   = 86400000
 
@@ -15,20 +15,19 @@ class MarsDateTime
   TimeStretch    = MSEC_PER_SOL/MSEC_PER_DAY.to_f
 
   Months = %w[ UNDEFINED
-               January   Gemini      February Cancer
-               March     Leo         April    Virgo 
-               May       Libra       June     Scorpio 
-               July      Sagittarius August   Capricorn 
-               September Aquarius    October  Pisces 
-               November  Aries       December Taurus ]   
+               M-January   Gemini      M-February Cancer
+               M-March     Leo         M-April    Virgo 
+               M-May       Libra       M-June     Scorpio 
+               M-July      Sagittarius M-August   Capricorn 
+               M-September Aquarius    M-October  Pisces 
+               M-November  Aries       M-December Taurus ]   
                # no month 0
 
   Week   = %w[ Sunday Monday Tuesday Wednesday Thursday Friday Saturday ]
 
   EpochMCE  = DateTime.new(1,1,21)
   EpochCE   = DateTime.new(1,1,1)
-  FudgeOffset = 67784 + 44000 + 1099 + 87 - 56
-  JulianDay1 = 1721443  # was ...24
+  JulianDay1 = 1721445   # Jan 1, 1 AD
 
   attr_reader :year, :month, :sol, :epoch_sol, :year_sol
   attr_reader :shr, :smin, :ssec    # stretched time
@@ -173,6 +172,9 @@ class MarsDateTime
   end
 
   def init_mems(mems)
+    # Note: The sol length is off by 0.09 msec -- to properly fix this 
+    # will require measuring in microseconds so as to avoid floating-point math.
+    # The "round" calls below were experimental and were "mostly" successful.
     full_years = 0
     loop do
       millisec = FAKE_MSEC_PER_MYEAR
@@ -185,9 +187,14 @@ class MarsDateTime
 
     mspm = MSEC_PER_SOL*28
     full_months,mems = mems.divmod(mspm)
+#   mems = mems.round
     full_days, mems  = mems.divmod(MSEC_PER_SOL)
+#   mems = mems.round
     full_hrs, mems   = mems.divmod(3_600_000)
+#   mems = mems.round
     full_min, mems   = mems.divmod(60_000)
+
+#   mems = mems.round
     sec = mems/1000.0
 
     my = full_years + 1      # 1-based
@@ -198,22 +205,12 @@ class MarsDateTime
     msec = sec.to_i
     frac = sec - msec        # fraction of a sec
 
-#    # check for leap year...
-#    if mm == 24
-#      max = leap?(my) ? 25 : 24
-#      diff = ms - max
-#      if diff > 0
-#        my, mm, ms = my+1, 1, diff
-#      end
-#    end
-
     init_yms(my, mm, ms, mhr, mmin, msec)
   end
 
   def init_datetime(dt)
     days = dt.jd - JulianDay1
     secs = days*86400 + dt.hour*3600 + dt.min*60 + dt.sec
-    secs -= FudgeOffset
     init_mems(secs*1000)
   end
 
@@ -239,6 +236,7 @@ class MarsDateTime
 
   def +(sols)
     millisec = sols * MSEC_PER_SOL
+# puts "#{sols} = #{millisec} msec added to #@mems"
     MarsDateTime.new(@mems + millisec)
   end
 
@@ -254,7 +252,7 @@ class MarsDateTime
   end
 
   def earth_date
-    secs = @mems/1000 + FudgeOffset
+    secs = @mems/1000
     days,secs = secs.divmod(86400)
     hrs, secs = secs.divmod(3600)
     min, secs = secs.divmod(60)
@@ -279,7 +277,7 @@ class MarsDateTime
       case piece
         when "%a"; final << @day_of_week[0..2]
         when "%A"; final << @day_of_week
-        when "%b"; final << month_name[0..2]
+        when "%b"; final << (@month.odd? ? month_name[2..4] : month_name[0..2])
         when "%B"; final << month_name
         when "%d"; final << zsol
         when "%e"; final << ('%2d' % @sol)
