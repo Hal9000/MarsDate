@@ -1,8 +1,63 @@
 # MarsDate
+
 ##   A Ruby date/time library for Mars
 
-This library is based on the Martian Common Era calendar by Hal Fulton.
+This library is based on the Martian Common Era calendar created by Hal Fulton.
 Its functionality closely follows that of Ruby's Time class.
+
+## Methods... (FIXME later)
+
+
+self.leap?(myear)  # class method for convenience
+self.short?(myear) # short year
+self.long?(myear)  # long year
+self.sols\_in\_month(m, year)
+self.now
+self.today
+
+leap?
+short?
+long?
+month\_name
+
+initialize(params)
+  3-6: y m d h m s
+    0: (now)
+    1: msec or Date or DateTime
+
+-(other)    MarsDateTime, DateTime, Integer, Float
++(sols)
+\<=\>(other)  MarsDateTime or DateTime
+
+earth\_date
+
+strftime(fmt)
+  %a  @day\_of\_week[0..2]
+  %A  @day\_of\_week
+  %b  (@month.odd? ? month\_name[2..4] : month\_name[0..2])
+  %B  month\_name
+  %d  zsol
+  %e  ('%2d' % @sol)
+  %F  "#@year-#{zmonth}-#{zsol}"
+  %H  zhh
+  %j  @year\_sol.to\_s
+  %m  zmonth  # @month.to\_s
+  %M  zmm
+  %s  @msec.to\_s  # was: (@mems\*1000).to\_i.to\_s
+  %S  zss
+  %u  (@dow + 1).to\_s
+  %U  (@year\_sol/7 + 1).to\_s
+  %w  @dow.to\_s
+  %x  "#@year/#{zmonth}/#{zsol}"
+  %X  "#{zhh}:#{zmm}:#{zss}"
+  %Y  @year.to\_s
+  %n  "\n"
+  %t  "\t"
+  %%  "%"
+  %P  ("%02d" % @shr)
+  %Q  ("%02d" % @smin)
+  %R  ("%02d" % @ssec)
+
 
 ### The Martian Common Era calendar
 
@@ -17,14 +72,10 @@ What needs doing here:
   - Add some executables (mcal, etc.)
   - Add extensive documentation to this README
   
-<html>
-<title>The Martian Common Era Calendar</title>
-<body>
-
 <center>
 <h2>The Martian Common Era Calendar</h2>
 <br>
-by Hal E. Fulton
+Hal E. Fulton
 <br>
 <br>
 </center>
@@ -524,6 +575,4 @@ before us. Worrying about clocks and calendars will be only one of thousands
 of issues we have to face. So we do little projects like this one.  It is 
 wise, or at least fun, to take care of what we can ahead of time.
 
-</body>
-</html>
 

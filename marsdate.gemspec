@@ -1,7 +1,12 @@
+require 'date'
+require 'find'
+
 Gem::Specification.new do |s|
+  system("rm -f *.gem")
   s.name        = 'marsdate'
   s.version     = `./bin/marsdate-version`  # Emits version number
-  s.licenses    = ['Ruby License']
+  s.license     = 'Ruby'
+  s.date        = Date.today.strftime("%Y-%m-%d")
   s.summary     = "Date/time library for Mars"
   s.description = <<-EOS
                   This is a library for handling dates and times on Mars
@@ -10,8 +15,10 @@ Gem::Specification.new do |s|
                   EOS
   s.authors     = ["Hal Fulton"]
   s.email       = 'rubyhacker@gmail.com'
-  s.files       = ["lib/marsdate.rb", "bin/mcal.rb", "bin/mkcal.rb", "bin/mtcon.rb", 
-                   "bin/mtoday.rb"]
+  s.files       = Find.find("lib").to_a + 
+                  Find.find("bin").to_a + 
+                  Find.find("test").to_a
+  s.executables << "blog"
   s.homepage    = 'https://github.com/Hal9000/marsdate'
 end
 

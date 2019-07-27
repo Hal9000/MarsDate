@@ -2,7 +2,7 @@ require 'date'
 
 class MarsDateTime
 
-  VERSION = "1.1.2"
+  VERSION = "1.1.3"
 
   include Comparable
 
@@ -123,6 +123,8 @@ class MarsDateTime
         case params.first
           when Integer, Float
             init_mems(params.first)
+          when Date
+            init_date(params.first)
           when DateTime
             init_datetime(params.first)
         else
@@ -136,7 +138,7 @@ class MarsDateTime
 
   def check_ymshms(my, mm, msol, mhr=0, mmin=0, msec=0)
     text = ""
-    text << "year #{my} is not an integer\n" unless my.is_a? Fixnum
+    text << "year #{my} is not an integer\n" unless my.is_a? Integer
     text << "month #{mm} is out of range" unless (1..24).include? mm
     text << "sol #{msol} is out of range" unless (1..28).include? msol
     text << "hour #{mhr} is out of range" unless (0..24).include? mhr
@@ -187,25 +189,27 @@ class MarsDateTime
 
     mspm = MSEC_PER_SOL*28
     full_months,mems = mems.divmod(mspm)
-#   mems = mems.round
     full_days, mems  = mems.divmod(MSEC_PER_SOL)
-#   mems = mems.round
     full_hrs, mems   = mems.divmod(3_600_000)
-#   mems = mems.round
     full_min, mems   = mems.divmod(60_000)
 
-#   mems = mems.round
     sec = mems/1000.0
-
-    my = full_years + 1      # 1-based
+    my = full_years  + 1  # 1-based
     mm = full_months + 1
-    ms = full_days + 1
-    mhr = full_hrs           # 0-based
+    ms = full_days   + 1
+    mhr = full_hrs        # 0-based
     mmin = full_min
     msec = sec.to_i
-    frac = sec - msec        # fraction of a sec
+    frac = sec - msec     # fraction of a sec
 
     init_yms(my, mm, ms, mhr, mmin, msec)
+  end
+
+  def init_date(date)
+    dt = date.to_datetime
+    days = dt.jd - JulianDay1
+    secs = days*86400 + dt.hour*3600 + dt.min*60 + dt.sec
+    init_mems(secs*1000)
   end
 
   def init_datetime(dt)
@@ -218,7 +222,7 @@ class MarsDateTime
     [@year, @month, @sol, @mhrs, @mmin, @msec]
   end
 
-  def -(other)
+  def -(other)  # FIXME? sols or secs?
     case other
       when MarsDateTime
         diff = @mems - other.mems
@@ -227,16 +231,15 @@ class MarsDateTime
         other = MarsDateTime.new(other)
         diff = @mems - other.mems
         diff.to_f / MSEC_PER_SOL
-      when Fixnum, Float
+      when Integer, Float
         self + (-other)
     else
       raise "Unexpected data type"
     end
   end
 
-  def +(sols)
+  def +(sols)  # FIXME? sols or secs?
     millisec = sols * MSEC_PER_SOL
-# puts "#{sols} = #{millisec} msec added to #@mems"
     MarsDateTime.new(@mems + millisec)
   end
 
