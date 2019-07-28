@@ -68,7 +68,7 @@ class MarsDateTime
   end
 
   def self.today
-    d = DateTime.now
+    d = Date.today
     MarsDateTime.new(d)
   end
 

@@ -4,7 +4,7 @@ require 'find'
 Gem::Specification.new do |s|
   system("rm -f *.gem")
   s.name        = 'marsdate'
-  s.version     = `./bin/marsdate-version`  # Emits version number
+  s.version     = `./bin/marsdate version`  # Emits version number
   s.license     = 'Ruby'
   s.date        = Date.today.strftime("%Y-%m-%d")
   s.summary     = "Date/time library for Mars"
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.files       = Find.find("lib").to_a + 
                   Find.find("bin").to_a + 
                   Find.find("test").to_a
-  s.executables << "blog"
+  s.executables << "marsdate"
   s.homepage    = 'https://github.com/Hal9000/marsdate'
 end
 

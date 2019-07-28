@@ -1,0 +1,236 @@
+#!/usr/bin/env ruby
+
+require 'marsdate'
+
+def usage
+  puts <<-EOF
+  Usage:
+
+    marsdate                # usage (this message)
+    marsdate version        # current version number
+    marsdate today          # today's Martian date
+    marsdate now            # today's Martian date/time
+
+    marsdate calendar yyyy  # Martian calendar for yyyy (HTML)   **FIXME**
+    marsdate calendar       # this year's Martian calendar (HTML)
+
+    marsdate e2m yyyy-mm-dd hh:mm:ss   # Convert Earth date to Mars date,
+    marsdate e2m yyyy-mm-dd            #   with/without time of day
+
+    marsdate m2e yyyy-mm-dd hh:mm:ss   # Convert Mars date to Earth date,
+    marsdate m2e yyyy-mm-dd            #   with/without time of day
+
+  EOF
+end
+
+def command(cmd)
+  case cmd
+    when "version"
+      puts MarsDateTime::VERSION
+    when "today"
+      puts MarsDateTime.today
+    when "now"
+      puts MarsDateTime.now
+    when "calendar"
+      calendar   # fix later
+    else
+      abort "Unknown command '#{cmd}'"
+  end
+end
+
+def get_data(ymd, hms = nil)
+  hms ||= "00:00:00"
+  yyyy, mm, dd = ymd.split(%r{[-/]}).map {|x| x.to_i }
+  hh, mi, ss   = hms.split(":").map {|x| x.to_i }
+  [yyyy, mm, dd, hh, mi, ss]
+end
+
+def invoke(cmd, *args)
+  send(cmd, *args)
+rescue => err
+  puts "Error in calling: #{cmd}(#{args.inspect[1..-2]})"
+  puts err.backtrace
+  exit
+end
+
+def e2m(ymd, hms)
+  yyyy, mm, dd, hh, mi, ss = *get_data(ymd, hms)
+  date = DateTime.new(yyyy, mm, dd, hh, mi, ss)
+  mdate = MarsDateTime.new(date)
+  puts mdate.inspect
+  puts mdate.to_s
+end
+
+def m2e(ymd, hms)
+  yyyy, mm, dd, hh, mi, ss = *get_data(ymd, hms)
+  mdate = MarsDateTime.new(yyyy,mm,dd)
+  date = mdate.earth_date
+  puts date.strftime("%x %X")
+end
+
+class CalendarHTML
+  def month_header(n)
+    @out.puts "<tr><td colspan=7"
+    @out.puts "<b><center><font size=4 face=arial color=red>#{MarsDateTime::Months[n]}</font><center></b>"
+    @out.puts "</td></tr>"
+    @out.puts "<tr bgcolor=#FFA833>"
+    @out.puts "<td width=3%><font size=3 face='arial'>Sun</font></td>"
+    @out.puts "<td width=3%><font size=3 face='arial'>Mon</font></td>"
+    @out.puts "<td width=3%><font size=3 face='arial'>Tue</font></td>"
+    @out.puts "<td width=3%><font size=3 face='arial'>Wed</font></td>"
+    @out.puts "<td width=3%><font size=3 face='arial'>Thu</font></td>"
+    @out.puts "<td width=3%><font size=3 face='arial'>Fri</font></td>"
+    @out.puts "<td width=3%><font size=3 face='arial'>Sat</font></td>"
+    @out.puts "</font>"
+    @out.puts "</tr>"
+  end
+
+  def month(year, n)
+    dow = MarsDateTime.new(year, n, 1).dow
+    ndays = 28
+    ndays = MarsDateTime.sols_in_month(n, year) if n == 24
+    mtoday = MarsDateTime.today
+    @curmonth = mtoday.month == n
+    list = [""]*dow + (1..ndays).to_a
+    l2 = []
+    loop do
+      l2 << list.slice!(0..6)
+      break if list.empty?
+    end
+
+    @out.puts "<table border=0 cellspacing=0 cellpadding=2>"
+    month_header(n)
+
+    l2.each do |week|
+      @out.puts "<tr border=1>"
+      week.each do |sol|
+        @cursol = @curmonth && (mtoday.sol == sol)
+        bgcolor = 
+          case [@curmonth, @cursol]
+            when [false, false], [false, true]
+              "#FFFFFF"
+            when [true, false]
+              "FFD0BF"
+            when [true, true]
+              "FFB0A0"
+            end
+        if sol == ""
+          @out.puts "  <td bgcolor=#{bgcolor}>&nbsp;</td>"
+        else
+          mtime = MarsDateTime.new(year, n, sol)
+          etime = mtime.earth_date
+          @out.puts "  <td align=right bgcolor=#{bgcolor}>"
+          @out.puts "<span title='#{etime.strftime('Day starts: Earth %F at %X UTC')}'>#{sol}</span>"
+          @out.puts "  </td>"
+        end
+      end
+      @out.puts "</tr>"
+    end
+    @out.puts "</table>"
+  end
+
+  def row(yr,i)
+    @out.puts "<tr>"
+    @out.puts "<td valign=top>"; month yr, i+1; @out.puts "</td>"
+    @out.puts "<td valign=top>"; month yr, i+2; @out.puts "</td>"
+    @out.puts "<td valign=top>"; month yr, i+3; @out.puts "</td>"
+    @out.puts "<td valign=top>"; month yr, i+4; @out.puts "</td>"
+    @out.puts "</tr>"
+  end
+
+  def initialize(year = MarsDateTime.today.year)
+    outfile = "/tmp/m#{year}.html"
+    @out = File.new(outfile, "w")
+
+    year = MarsDateTime.today.year unless year
+    year = year.to_i  # in case of ARGV
+
+    @out.puts "<table>"
+    @out.puts "<tr bgcolor=red>"
+    @out.puts "<td align=center colspan=4>"
+    @out.puts "<font face=arial size=6 color=white>Year #{year} MCE</font>"
+    @out.puts "</td>"
+    @out.puts "</tr>"
+    6.times {|i| row(year, i*4) }
+
+    @out.puts "</table>"
+    @out.close
+
+    puts "\n  See file #{outfile}\n "
+  end
+end
+
+
+def calendar
+  year ||= MarsDateTime.today.year
+  CalendarHTML.new(year)
+end
+
+=begin
+# LATER??
+require 'marsdate'
+
+def put_week(week)
+  week.each {|x| printf("%3s ",x.to_s) }
+  puts
+end
+
+mon, yr = ARGV 
+# p [mon, yr]
+now = MarsDateTime.now
+mon ||= now.month
+yr ||= now.year
+# p [mon, yr]
+mon = mon.to_i
+yr  = yr.to_i
+# p [mon, yr]
+
+ftm = MarsDateTime.new(yr, mon, 1)
+
+header = %w[Sun Mon Tue Wed Thu Fri Sat]
+
+week1 = Array.new(7)
+sol = 0
+ftm.dow.upto(6) do |d|
+  week1[d] = (sol += 1)
+end
+
+solN = MarsDateTime.sols_in_month(mon, yr)
+remaining = ((sol += 1)..solN).to_a
+
+weeks = []
+weeks << header << week1
+
+loop do
+  week = []
+  7.times { week << remaining.shift }
+  weeks << week
+  break if remaining.empty?
+end
+
+label = ftm.month_name + " " + ftm.year.to_s
+spacing = " "*((27 - label.length)/2)
+
+puts
+puts spacing + label
+puts
+
+weeks.each {|week| put_week(week) }
+
+puts
+=end
+
+#### Main
+
+args = ARGV.size
+cmd = ARGV.first
+
+case
+  when args == 0
+    usage
+  when args == 1
+    command(cmd)
+  when [2,3].include?(args)
+    invoke(ARGV[0], ARGV[1], ARGV[2])
+end
+
