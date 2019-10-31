@@ -2,11 +2,11 @@ require 'date'
 
 class MarsDateTime
 
-  VERSION = "1.1.6"
+  VERSION = "1.1.7"
 
   include Comparable
 
-  MSEC_PER_SOL   = 88775244 # .09   # Really + 0.09
+  MSEC_PER_SOL   = 88775244  # Really + 0.09
   SOLS_PER_MYEAR = 668.5921
   MSEC_PER_DAY   = 86400000
 

@@ -5,7 +5,8 @@ Gem::Specification.new do |s|
   system("rm -f *.gem")
   s.name        = 'marsdate'
   version = `grep VERSION lib/marsdate.rb`
-  version = version.each_line.to_a.first.split("= ")[1].strip
+  version = version.each_line.to_a.first.split("= ")[1]
+  version = version.strip[1..-2]
   s.version     = version
   s.license     = 'Ruby'
   s.date        = Date.today.strftime("%Y-%m-%d")
