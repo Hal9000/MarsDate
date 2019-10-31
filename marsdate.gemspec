@@ -4,7 +4,9 @@ require 'find'
 Gem::Specification.new do |s|
   system("rm -f *.gem")
   s.name        = 'marsdate'
-  s.version     = `./bin/marsdate version`  # Emits version number
+  version = `grep VERSION lib/marsdate.rb`
+  version = version.each_line.to_a.first.split("= ")[1].strip
+  s.version     = version
   s.license     = 'Ruby'
   s.date        = Date.today.strftime("%Y-%m-%d")
   s.summary     = "Date/time library for Mars"
