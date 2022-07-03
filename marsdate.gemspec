@@ -23,5 +23,6 @@ Gem::Specification.new do |s|
                   Find.find("test").to_a
   s.executables << "marsdate"
   s.homepage    = 'https://github.com/Hal9000/marsdate'
+  s.post_install_message = "\n Success! Run executable 'marsdate' for help.\n "
 end
 

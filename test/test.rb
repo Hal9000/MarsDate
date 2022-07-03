@@ -70,33 +70,32 @@ class MarsDateTest < MiniTest::Unit::TestCase
   context "Earth date May 23, 1961" do
     e = DateTime.new(1961,5,23)
     m = MarsDateTime.new(e)
-    should "yield a Martian Friday" do
-      assert_equal(m.day_of_week,"Friday")
+    should "yield a Martian Thursday" do
+      assert_equal(m.day_of_week,"Thursday")
     end
   end
 
   context "Earth date May 24, 1961" do
     e = DateTime.new(1961,5,24)
     m = MarsDateTime.new(e)
-    should "yield a Martian Saturday" do
-      assert_equal(m.day_of_week,"Saturday")
-#     my_assert_equal(m.day_of_week,"Friday") { p m }
+    should "yield a Martian Friday" do
+      assert_equal(m.day_of_week,"Friday")
     end
   end
 
   context "A Martian date/time (y,m,s,h,m,s)" do   ###
     m = MarsDateTime.new(1043,2,15,12,34,45)
     should "set all its accessors properly" do
-      assert_equal(1043,m.myear)
-      assert_equal(2,m.month)
-      assert_equal(15,m.sol)
-      assert_equal(12,m.hr)
-      assert_equal(34,m.min)
-      assert_equal(45,m.sec)
-      assert_equal(4,m.dow)
-      assert_equal("Thursday",m.day_of_week)
-      assert_equal(43,m.year_sol)
-      assert_equal(696715,m.epoch_sol)
+      assert_equal(1043, m.myear)
+      assert_equal(2, m.month)
+      assert_equal(15, m.sol)
+      assert_equal(12, m.hr)
+      assert_equal(34, m.min)
+      assert_equal(45, m.sec)
+      assert_equal(4, m.dow)
+      assert_equal("Thursday", m.day_of_week)
+      assert_equal(43, m.year_sol)
+      assert_equal(696715, m.epoch_sol)
     end
   end
 
@@ -133,18 +132,18 @@ class MarsDateTest < MiniTest::Unit::TestCase
   context "A Martian date/time (933,1,2)" do
     m = MarsDateTime.new(933,1,2)
     should "set the three obvious accessors properly" do
-      assert_equal(933,m.myear)
-      assert_equal(1,m.month)
-      assert_equal(2,m.sol)
+      assert_equal(933, m.myear)
+      assert_equal(1, m.month)
+      assert_equal(2, m.sol)
     end
   end
 
   context "A Martian date/time (933,1,1)" do
     m = MarsDateTime.new(933,1,1)
     should "set the three obvious accessors properly" do
-      assert_equal(933,m.myear)
-      assert_equal(1,m.month)
-      assert_equal(1,m.sol)
+      assert_equal(933, m.myear)
+      assert_equal(1, m.month)
+      assert_equal(1, m.sol)
     end
   end
 
@@ -152,21 +151,21 @@ class MarsDateTest < MiniTest::Unit::TestCase
     context "in a leap year" do
       year = 1067
       should "exist" do
-        assert( MarsDateTime.leap?(year) )
-        assert_nothing_raised { MarsDateTime.new(year,24,25) }
+        assert(MarsDateTime.leap?(year))
+        assert(MarsDateTime.new(year,24,25))  # no exception raised
       end
     end
     context "in a non-leap year" do
       year = 1066
       should "not exist" do
-        assert( ! MarsDateTime.leap?(year) )
-        assert_raise(RuntimeError) { MarsDateTime.new(year,24,25) }
+        assert(! MarsDateTime.leap?(year))
+        assert_raises(RuntimeError) { MarsDateTime.new(year,24,25) }
       end
     end
   end
 
   context "The earth_date convertor" do
-    m = MarsDateTime.new(1,1,1)
+    m = MarsDateTime.new(1, 1, 1)
     should "convert to a Gregorian date" do
       e = m.earth_date
       assert_equal(1,e.year)
@@ -176,7 +175,7 @@ class MarsDateTest < MiniTest::Unit::TestCase
   end
 
   context "An Earthly date" do
-    e1 = DateTime.new(1961,5,31)
+    e1 = DateTime.new(1961, 5, 31)
     should "(approximately) make the conversion roundtrip" do
       m1 = MarsDateTime.new(e1)
       e2 = m1.earth_date
@@ -186,7 +185,7 @@ class MarsDateTest < MiniTest::Unit::TestCase
   end
 
   context "A Martian date" do
-    m1 = MarsDateTime.new(1067,1,1)
+    m1 = MarsDateTime.new(1067, 1, 1)
     should "(approximately) make the conversion roundtrip" do
       e1 = m1.earth_date
       m2 = MarsDateTime.new(e1)
@@ -196,47 +195,47 @@ class MarsDateTest < MiniTest::Unit::TestCase
   end
 
   context "An arbitrary Martian date" do
-    m1 = MarsDateTime.new(1069,15,24)
-    m2 = MarsDateTime.new(933,6,4)
-    m3 = MarsDateTime.new(1055,14,1)
+    m1 = MarsDateTime.new(1069, 15, 24)
+    m2 = MarsDateTime.new(933, 6, 4)
+    m3 = MarsDateTime.new(1055, 14, 1)
     should "format well with strftime" do
-      assert_equal("Mon",m1.strftime("%a"))
-      assert_equal("Monday",m1.strftime("%A"))
-      assert_equal("Aug",m1.strftime("%b"))
-      assert_equal("August",m1.strftime("%B"))
-      assert_equal("24",m1.strftime("%d"))
-      assert_equal("24",m1.strftime("%e"))
-      assert_equal("1069-15-24",m1.strftime("%F"))
-      assert_equal("416",m1.strftime("%j"))
-      assert_equal("15",m1.strftime("%m"))
-      assert_equal("0",m1.strftime("%s"))
-      assert_equal("2",m1.strftime("%u"))
-      assert_equal("60",m1.strftime("%U"))
-      assert_equal("1",m1.strftime("%w"))
-      assert_equal("1069/15/24",m1.strftime("%x"))
-      assert_equal("1069",m1.strftime("%Y"))
-      assert_equal("\n",m1.strftime("%n"))
-      assert_equal("\t",m1.strftime("%t"))
-      assert_equal("%",m1.strftime("%%"))
+      assert_equal("Mon", m1.strftime("%a"))
+      assert_equal("Monday", m1.strftime("%A"))
+      assert_equal("Aug", m1.strftime("%b"))
+      assert_equal("M-August", m1.strftime("%B"))
+      assert_equal("24", m1.strftime("%d"))
+      assert_equal("24", m1.strftime("%e"))
+      assert_equal("1069-15-24", m1.strftime("%F"))
+      assert_equal("416", m1.strftime("%j"))
+      assert_equal("15", m1.strftime("%m"))
+      assert_equal("0", m1.strftime("%s"))
+      assert_equal("2", m1.strftime("%u"))
+      assert_equal("60", m1.strftime("%U"))
+      assert_equal("1", m1.strftime("%w"))
+      assert_equal("1069/15/24", m1.strftime("%x"))
+      assert_equal("1069", m1.strftime("%Y"))
+      assert_equal("\n", m1.strftime("%n"))
+      assert_equal("\t", m1.strftime("%t"))
+      assert_equal("%", m1.strftime("%%"))
   
-      assert_equal("Wed",m2.strftime("%a"))
-      assert_equal("Wednesday",m2.strftime("%A"))
-      assert_equal("Leo",m2.strftime("%b"))
-      assert_equal("Leo",m2.strftime("%B"))
-      assert_equal("04",m2.strftime("%d"))
-      assert_equal(" 4",m2.strftime("%e"))
-      assert_equal("933-6-4",m2.strftime("%F"))
-      assert_equal("144",m2.strftime("%j"))
-      assert_equal("6",m2.strftime("%m"))
-      assert_equal("0",m2.strftime("%s"))
-      assert_equal("4",m2.strftime("%u"))
-      assert_equal("21",m2.strftime("%U"))
-      assert_equal("3",m2.strftime("%w"))
-      assert_equal("933/06/04",m2.strftime("%x"))
-      assert_equal("933",m2.strftime("%Y"))
+      assert_equal("Wed", m2.strftime("%a"))
+      assert_equal("Wednesday", m2.strftime("%A"))
+      assert_equal("Leo", m2.strftime("%b"))
+      assert_equal("Leo", m2.strftime("%B"))
+      assert_equal("04", m2.strftime("%d"))
+      assert_equal(" 4", m2.strftime("%e"))
+      assert_equal("933-06-04", m2.strftime("%F"))
+      assert_equal("144", m2.strftime("%j"))
+      assert_equal("06", m2.strftime("%m"))
+      assert_equal("0", m2.strftime("%s"))
+      assert_equal("4", m2.strftime("%u"))
+      assert_equal("21", m2.strftime("%U"))
+      assert_equal("3", m2.strftime("%w"))
+      assert_equal("933/06/04", m2.strftime("%x"))
+      assert_equal("933", m2.strftime("%Y"))
   
-      assert_equal("Sag",m3.strftime("%b"))
-      assert_equal("Sagittarius",m3.strftime("%B"))
+      assert_equal("Sag", m3.strftime("%b"))
+      assert_equal("Sagittarius", m3.strftime("%B"))
     end
   end
 
@@ -290,20 +289,20 @@ class MarsDateTest < MiniTest::Unit::TestCase
   end
 
   context "Converting 1961/5/31 to Martian" do
-    e = DateTime.new(1961,5,31) 
+    e = DateTime.new(1961, 5, 31) 
     m = MarsDateTime.new(e)
-    should "yield M-April 10, 1043 MCE" do
+    should "yield M-April 9, 1043 MCE" do
       assert(m.year == 1043)
       assert(m.month == 7)
-      assert(m.sol == 10)
+      assert(m.sol == 9)
     end
-    should "give a Martian Saturday" do
-      assert(m.day_of_week == "Saturday")
+    should "give a Martian Friday" do
+      assert(m.day_of_week == "Friday")
     end
   end
 
   context "The 1609 Martian equinox" do
-    e = DateTime.new(1609,3,12)
+    e = DateTime.new(1609, 3, 12)
     m = MarsDateTime.new(e)
     m11 = MarsDateTime.new(856,1,1)
     should "fall on or near 1/1 (MCE)" do

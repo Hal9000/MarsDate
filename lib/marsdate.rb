@@ -1,8 +1,9 @@
 require 'date'
+require 'json'
 
 class MarsDateTime
 
-  VERSION = "1.1.7"
+  VERSION = "1.1.9"
 
   include Comparable
 
@@ -40,6 +41,19 @@ class MarsDateTime
   alias hr   mhrs
   alias min  mmin
   alias sec  msec
+  alias day  sol
+
+  def self.from_json(str)
+    obj = allocate
+    hash = JSON.parse(str)
+    obj.instance_eval do
+      hash.each_pair do |key, val|
+        ivar = "@#{key}"
+        instance_variable_set(ivar, val)
+      end
+    end
+    obj
+  end
 
   def self.leap?(myear)    # class method for convenience
     return (myear % 2 == 1) if (myear % 10 != 0)
@@ -70,6 +84,30 @@ class MarsDateTime
   def self.today
     d = Date.today
     MarsDateTime.new(d)
+  end
+
+  #### instance methods
+
+  def as_json(options={})
+    { year:        @year,
+      month:       @month,
+      sol:         @sol,
+      epoch_sol:   @epoch_sol,
+      year_sol:    @year_sol,
+      shr:         @shr,
+      smin:        @smin,
+      ssec:        @ssec,
+      mems:        @mems,
+      dow:         @dow,
+      day_of_week: @day_of_week,
+      mhrs:        @mhrs,
+      mmin:        @mmin,
+      msec:        @msec
+    }
+  end
+
+  def to_json(*options)
+    as_json(*options).to_json(*options)
   end
 
   def leaps(myr)
