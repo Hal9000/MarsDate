@@ -26,9 +26,9 @@ initialize(params)
     0: (now)
     1: msec or Date or DateTime
 
--(other)    MarsDateTime, DateTime, Integer, Float
+-(other)      # MarsDateTime, DateTime, Integer, Float
 +(sols)
-\<=\>(other)  MarsDateTime or DateTime
+\<=\>(other)  # MarsDateTime or DateTime
 
 earth_date
 
