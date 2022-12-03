@@ -8,6 +8,7 @@ Its functionality closely follows that of Ruby's Time class.
 ## Methods... (FIXME later)
 
 
+<pre>
 self.leap?(myear)  # class method for convenience
 self.short?(myear) # short year
 self.long?(myear)  # long year
@@ -57,6 +58,7 @@ strftime(fmt)
   %P  ("%02d" % @shr)
   %Q  ("%02d" % @smin)
   %R  ("%02d" % @ssec)
+</pre>
 
 
 ### The Martian Common Era calendar
