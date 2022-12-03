@@ -12,14 +12,14 @@ Its functionality closely follows that of Ruby's Time class.
 self.leap?(myear)  # class method for convenience
 self.short?(myear) # short year
 self.long?(myear)  # long year
-self.sols\_in\_month(m, year)
+self.sols_in_month(m, year)
 self.now
 self.today
 
 leap?
 short?
 long?
-month\_name
+month_name
 
 initialize(params)
   3-6: y m d h m s
@@ -30,28 +30,28 @@ initialize(params)
 +(sols)
 \<=\>(other)  MarsDateTime or DateTime
 
-earth\_date
+earth_date
 
 strftime(fmt)
-  %a  @day\_of\_week[0..2]
-  %A  @day\_of\_week
-  %b  (@month.odd? ? month\_name[2..4] : month\_name[0..2])
-  %B  month\_name
+  %a  @day_of_week[0..2]
+  %A  @day_of_week
+  %b  (@month.odd? ? month_name[2..4] : month_name[0..2])
+  %B  month_name
   %d  zsol
   %e  ('%2d' % @sol)
   %F  "#@year-#{zmonth}-#{zsol}"
   %H  zhh
-  %j  @year\_sol.to\_s
+  %j  @year_sol.to_s
   %m  zmonth  # @month.to\_s
   %M  zmm
-  %s  @msec.to\_s  # was: (@mems\*1000).to\_i.to\_s
+  %s  @msec.to_s  # was: (@mems\*1000).to_i.to_s
   %S  zss
-  %u  (@dow + 1).to\_s
-  %U  (@year\_sol/7 + 1).to\_s
-  %w  @dow.to\_s
+  %u  (@dow + 1).to_s
+  %U  (@year_sol/7 + 1).to_s
+  %w  @dow.to_s
   %x  "#@year/#{zmonth}/#{zsol}"
   %X  "#{zhh}:#{zmm}:#{zss}"
-  %Y  @year.to\_s
+  %Y  @year.to_s
   %n  "\n"
   %t  "\t"
   %%  "%"
