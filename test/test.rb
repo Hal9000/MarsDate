@@ -2,7 +2,7 @@ require './lib/marsdate'
 
 require 'rubygems'
 require 'minitest/autorun'
-require 'shoulda'
+
 require 'pp'
 
 class MarsDateTest < MiniTest::Unit::TestCase
