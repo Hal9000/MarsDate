@@ -26,13 +26,14 @@ initialize(params)
     0: (now)
     1: msec or Date or DateTime
 
--(other)      # MarsDateTime, DateTime, Integer, Float
+-(other)    # MarsDateTime, DateTime, Integer, Float
 +(sols)
-\<=\>(other)  # MarsDateTime or DateTime
+<=>(other)  # MarsDateTime or DateTime
 
 earth_date
 
-strftime(fmt)
+strftime(fmt)   # Specifiers are as follows:
+
   %a  @day_of_week[0..2]
   %A  @day_of_week
   %b  (@month.odd? ? month_name[2..4] : month_name[0..2])
