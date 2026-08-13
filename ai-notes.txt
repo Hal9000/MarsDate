@@ -1,0 +1,265 @@
+AI code review notes: MarsDate (lib/marsdate.rb, bin/marsdate)
+================================================================
+Scope: accuracy and functionality only (not style, structure, or
+documentation cleanup except where docs disagree with the code).
+
+Reviewed against the implementation, tests, README examples, and
+direct probes on Ruby 3.2.3 (2026-08-12).
+
+
+1. Earth–Mars conversion
+------------------------
+
+1.1 Timezone / offset is ignored (serious)
+
+    DateTime#jd is a civil-date integer. init_date / init_datetime then
+    add dt.hour, dt.min, and dt.sec without applying dt.offset.
+
+    Two DateTime values for the same instant therefore become different
+    Mars times. Example:
+
+      2000-01-01 12:00:00+00:00 → 1063/19/19 03:39:31
+      2000-01-01 07:00:00-05:00 → 1063/19/18 23:19:07
+
+    Difference: five hours (mems differed by 17999.244 seconds; the
+    extra 0.756 s shortfall is truncation from 1.3).
+
+    DateTime < Date, so a DateTime argument matches `when Date` first
+    and always goes through init_date. init_datetime is dead code, but
+    the two methods are equivalent, so this is not an additional
+    functional bug.
+
+1.2 Sub-second data is discarded; round-trips often lose a second
+
+    Several independent truncations stack:
+
+    - init_mems computes `frac = sec - msec` and never uses it, then
+      calls init_yms which rebuilds @mems from integer seconds.
+    - earth_date does integer `@mems / 1000`, dropping 0–999 ms.
+      Because MSEC_PER_SOL = 88775244, leftover 244 ms per sol
+      accumulates; mems % 1000 is often nonzero (e.g. 192).
+    - init_datetime uses dt.sec and ignores DateTime#sec_fraction, so
+      MarsDateTime.now drops the fractional second.
+
+    Observed: 1961-05-31 12:34:56 comes back as 12:34:55.
+    Mars 1067/01/01 12:34:45 comes back as 12:34:44.
+
+    Tests hide this with a 0.01-day (~14 minute) tolerance.
+
+1.3 Date is not a valid operand for - or <=>
+
+    The constructor accepts Date, but `-` and `<=>` only handle
+    MarsDateTime and DateTime. Passing Date.today raises
+    "Unexpected data type" / "Invalid comparison".
+
+1.4 MarsDateTime.today is Earth midnight, not “the current Martian date”
+
+    today uses Date.today (local date at 00:00), now uses DateTime.now.
+    Late in the Earth day they can fall on different Martian sols.
+
+    Observed on 2026-08-12 around 23:57 UTC:
+      today → 1077/23/06 Friday  14:42:18
+      now   → 1077/23/07 Saturday 14:00:37
+
+    The existing test only checks that the difference is < 1.0 sol, so
+    it still passes.
+
+1.5 Live epoch vs unused constants
+
+    Conversion uses JulianDay1 = 1721445, which is 0001-01-22, and the
+    tests expect Earth 1 Jan 22 ≈ Mars 1/1/1.
+
+    Unused EpochMCE is DateTime.new(1,1,21) (JD 1721444). The comment
+    on JulianDay1 says “Jan 1, 1 AD”; actual Date.new(1,1,1).jd is
+    1721424. Those constants/comments are wrong, but they are not what
+    the converter uses.
+
+
+2. Invalid dates that are accepted
+----------------------------------
+
+2.1 Taurus (month 24) in a leap year: sols 26–28 are allowed
+
+    sols_in_month(24, leap_year) correctly returns 25, but
+    check_ymshms only special-cases sol > 24 in *non*-leap years.
+    Leap-year month 24 still uses the generic 1..28 range.
+
+    Those objects do not round-trip through mems:
+
+      MarsDateTime.new(1067, 24, 26)
+        stored   → 1067/24/26
+        reparsed → 1068/01/01
+
+    Accessors and @mems disagree for these invalid dates.
+
+2.2 Canonical time can run past the end of a sol
+
+    A sol is 24:39:35.244 (MSEC_PER_SOL = 88775244). Hour 24 is
+    allowed, and minutes 0–59 are allowed even at hour 24, so
+    24:40:00 through 24:59:59 are accepted. Hour 25 is rejected.
+
+    24:39:35 on 1/1/1 has mems 244 ms *before* 1/1/2 00:00:00
+    (integer seconds cannot represent the 0.244 s remainder).
+
+    24:40:00 does not round-trip:
+
+      stored   → 1/01/01 24:40:00  (mems=88800000)
+      reparsed → 1/01/02 00:00:24
+
+2.3 Stretched seconds can be 60
+
+    compute_stretched uses `sec.round` with no carry into minutes.
+    Observed:
+      canonical 24:39:35 → stretched 23:59:60
+      canonical 11:30:28 → stretched 11:11:60
+
+2.4 Dates before year 1 do not work
+
+    leap?(0) is true (0 % 1000 == 0), but leaps() only counts years
+    ≥ 1, so leap-year accumulation is wrong for year ≤ 0.
+
+    MarsDateTime.new(0,1,1) is accepted (epoch_sol -667).
+    MarsDateTime.new(-1) as milliseconds raises
+    "month 0 is out of range" (negative mems in init_mems).
+    Constructing via y/m/s and via mems therefore disagree for
+    pre-epoch values.
+
+
+3. CLI (bin/marsdate)
+---------------------
+
+3.1 m2e drops the time of day
+
+    get_data parses hh:mm:ss, but m2e then calls
+    MarsDateTime.new(yyyy, mm, dd) and ignores hh, mi, ss.
+    Usage advertises `marsdate m2e yyyy-mm-dd hh:mm:ss`.
+
+3.2 marsdate calendar yyyy does not take a year
+
+    command("calendar") never passes ARGV[1].
+    calendar() has no parameters; `year ||= MarsDateTime.today.year`
+    is always today’s year because year is nil.
+
+    With two args, main calls invoke("calendar", year, nil) →
+    ArgumentError (wrong arity). Marked **FIXME** in the usage text.
+
+3.3 “Today” highlighting ignores year
+
+    CalendarHTML#month sets @curmonth = (mtoday.month == n) and does
+    not compare year. Viewing another year still highlights the
+    current month number (and the matching sol number).
+
+
+4. Smaller functional defects
+-----------------------------
+
+4.1 to_yaml_properties names ivars that do not exist
+
+    Lists @myear and @msme. Actual ivars are @year and @mems.
+    Also omits stretched-time fields (@shr, @smin, @ssec).
+    YAML serialization via that hook would be wrong or empty
+    for the important fields.
+
+4.2 strftime("foo%") drops the trailing %
+
+    The scanner is /(%.|[^%]+)/, which requires a character after %.
+    "foo%" formats as "foo". A lone "%" formats as "".
+
+4.3 %s is the seconds field, not epoch seconds
+
+    Ruby Time#strftime %s is seconds since the Unix epoch.
+    Here %s is @msec (0–59). The source comment notes it used to be
+    (@mems*1000). Tests expect "0" at midnight. Intentional relative
+    to the tests, but not Time-compatible despite the README claim.
+
+4.4 Unimplemented strftime specifiers pass through literally
+
+    %I, %p, %y, %Z, etc. are listed in a comment as unfinished.
+    "%I" formats as "%I" rather than a 12-hour clock value.
+
+4.5 from_json can build a broken object
+
+    allocate + instance_variable_set from JSON keys. No validation
+    and no re-derive from mems. A complete as_json round-trip works;
+    a partial or edited payload can yield an object whose fields
+    disagree with each other.
+
+4.6 Integer / Float single-arg constructor is milliseconds, not a year
+
+    MarsDateTime.new(1068) is 1068 ms after the epoch, not year 1068.
+    Documented in the README, but easy to misuse; there is no
+    two-argument (year, month) form either.
+
+4.7 strftime comments swap “stretched” and “canonical”
+
+    zhh is built from @mhrs (canonical, may be 24) and is labeled
+    stretched. zhc is built from @shr (stretched 0–23) and is labeled
+    canonical. %H uses zhh; %P uses @shr. Behavior follows the
+    specifiers, not the comments.
+
+
+5. README examples vs this implementation
+-----------------------------------------
+
+The article says a crude conversion takes the beginning of an Earth
+date and asks which Martian date that instant falls in. Results at
+00:00 UTC vs 12:00 UTC:
+
+  Claim                                      00:00 UTC              12:00 UTC
+  -----------------------------------------  ---------------------  ---------------------
+  2010-01-01 = Tue, M-February 11, 1069      Mon, M-February 10     Tue, M-February 11
+  2011-07-04 = Thu, Aries 13, 1069           matches                matches
+  2011-09-13 = 1070-01-01                    matches                matches
+  1976-07-20 = Tue, Virgo 12, 1051           Wed, Virgo 13          Thu, Virgo 14
+
+  Viking (actual landing ~11:53 UTC 1976-07-20) does not match the
+  claimed Tuesday Virgo 12 at any hour on that Earth date.
+
+  Equinox tests in test/spec/marsdate_spec.rb apply .new_offset(-5)
+  and require diff < 1.0 sol. test/test.rb does not apply the offset
+  and allows diff < 1.5. Both pass because the conversion already
+  lands on 1/1 of the expected M-year; the offset only changes the
+  time of day (see 1.1).
+
+
+6. What is not a bug (for this calendar)
+----------------------------------------
+
+- Leap-year rules match the README: odd years and multiples of 10
+  are long, except centuries, except millennia. Mean year over 1000
+  M-years is 668.591 sols. SOLS_PER_MYEAR = 668.5921 is unused, so
+  it does not affect results. (Darian uses a 500-year correction
+  instead of 1000; MCE documents 1000.)
+
+- Sol length 88775244 ms = 24h 39m 35.244s. The comment “Really
+  + 0.09” (i.e. 88775244.09 ms) is unused in the math.
+
+- Adding integer sols across month/year/leap-day boundaries is
+  correct for *valid* dates (e.g. 1066/24/24 + 1 → 1067/01/01,
+  1067/24/25 + 1 → 1068/01/01).
+
+- JSON as_json / to_json / from_json round-trips when the payload
+  is a complete dump of as_json.
+
+- Month-name %b abbreviations (M- prefix stripped on odd months,
+  first three letters on even months) match the tests.
+
+- DateTime#jd does not double-count time of day: Ruby’s jd is an
+  integer civil day, and hour/min/sec are added separately. The
+  timezone bug is the missing offset, not a double-counted clock.
+
+
+7. Tests (functionality of the suite, not the library)
+------------------------------------------------------
+
+- test/test.rb subclasses MiniTest::Test. Current minitest 6 uses
+  Minitest (constant name change); the file does not load.
+
+- test/spec/marsdate_spec.rb: `lambda { ... }.must_raise(RuntimeError)`
+  is old minitest/spec syntax and errors on current minitest
+  (`undefined method must_raise for Proc`). Other spec examples ran
+  (39 runs, 145 assertions, 0 failures, 1 error).
+
+- Spec vs shoulda disagree on the 1961-05-31 weekday test title
+  (“Martian Saturday” vs assertion of Friday) — title only, the
+  assertion is Friday in both files.
