@@ -367,3 +367,39 @@ arithmetic is for.
 
     Until that distinction is made, the offset is a definition of
     midnight, not a failed calculation.
+
+
+8.5 Recommendation: do not fudge the epoch by 11h 19m
+
+    Do not bake that offset into a new Year-1 Earth midnight.
+    It is a symptom of the old definition, not a constant to
+    keep. A fixed shift would look like MTC for a while and then
+    drift (sol length 1.02749125 vs 1.0274912517, UTC vs TT,
+    leap seconds). It would still not be MTC. Official Mars time
+    is mean solar time at Airy-0, from JD in Terrestrial Time,
+    not “our epoch, slid.”
+
+    Split clock and calendar:
+
+      1. Clock — Earth instant → JD_TT → MSD → MTC, using the
+         NASA/Allison (Mars24) formula. That is official time of
+         day (24 stretched hours). Canonical 24:39 is only another
+         readout of the same fraction of a sol.
+
+      2. Calendar — integer MSD (which sol) → MCE year/month/sol
+         with the existing leap rules. Keep year 1 near the 1 CE
+         equinox so the 1.88 year-number property survives.
+         Define 1/1/1 00:00 as Airy-0 mean midnight of that sol,
+         not as Earth 00:00 on Jan 22.
+
+    Then 00:00 is night at the prime meridian, New Year can still
+    fall on the equinox date, and a clock that says 01:06 agrees
+    with MTC.
+
+    Do not set 1/1/1 00:00 to the equinox instant. That would make
+    New Year exact in orbit but the clock would no longer be MTC
+    (the equinox is not at Airy-0 midnight). Civil midnight first;
+    equinox as the date.
+
+    Longitude, if added later, is LMST = MTC − λ/15°. No second
+    epoch required.
