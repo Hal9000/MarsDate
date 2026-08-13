@@ -265,3 +265,105 @@ date and asks which Martian date that instant falls in. Results at
 - Spec vs shoulda disagree on the 1961-05-31 weekday test title
   (“Martian Saturday” vs assertion of Friday) — title only, the
   assertion is Friday in both files.
+
+
+8. Coordinated Mars Time (MTC) vs this library
+----------------------------------------------
+
+Checked 2026-08-13 00:06:56 UTC against NASA/Allison MTC (Mars24
+formula C-2 / Wikipedia MSD). User-reported MTC ~01:06 matches
+the formula (01:06:22).
+
+  Clock                                      Reading
+  -----------------------------------------  ----------
+  MTC (Airy-0 mean solar time)               01:06:22
+  Library stretched (%P:%Q:%R)               13:46:55
+  Library canonical (Earth-length hours)     14:09:39
+
+  Offset (stretched vs MTC, short way):      11h 19m 27s behind
+  Other way around the 24h clock:            12h 40m 33s
+
+NASA calibration point 2000-01-06 00:00 UTC (Mars24 worked
+example: MST 23:59:39): library stretched reads 12:40:16, same
+~11h 19m phase error.
+
+This is not a rounding or arithmetic failure. The conversion is
+doing what it was written to do. The mistake is in what that
+arithmetic is for.
+
+
+8.1 What the library actually defines
+
+    It picks one Earth instant — 1 Jan 22, 00:00 UTC — and labels
+    it Mars 1/1/1 00:00. After that, elapsed SI milliseconds on
+    Earth are elapsed milliseconds on Mars, chopped into sols of
+    88_775.244 s. That is a consistent mapping of instants. It is
+    not Coordinated Mars Time.
+
+8.2 What MTC is
+
+    MTC is mean solar time at Airy-0: the clock reads 00:00 when
+    the mean sun is at nadir on the prime meridian. NASA’s formula
+    is the fractional sol since that midnight, in 24 stretched
+    hours.
+
+    At the library’s epoch instant, Airy-0 was not at midnight.
+    It was about 11:21 MTC. The code still called that instant
+    00:00. That phase error is still there today (11h 19m 27s;
+    a couple of minutes of drift over two millennia from sol-length
+    rounding and leap seconds).
+
+    So the library’s “midnight” is late morning at the meridian
+    the README itself treats as Martian Greenwich. The date
+    changes in daylight at Airy-0. A stretched readout of 13:47
+    is mid-afternoon on that clock while MTC is 01:06.
+
+8.3 The reasoning slip
+
+    The README wants three things that do not automatically
+    coincide:
+
+      1. MCE year 1 near Earth year 1 (so year numbers keep the
+         1.88 ratio).
+      2. New Year on the northern vernal equinox.
+      3. A day that starts at 00:00, with NASA-style stretched
+         time and Airy-0 as Greenwich.
+
+    (1) and (2) are about which sol is 1/1. (3) is about when
+    that sol starts and what the clock means. The implementation
+    collapsed them into one rule: “the start of that Earth civil
+    day is the start of that Mars sol.”
+
+    That is the “crude conversion” the article describes for
+    dates (which Earth day overlaps which Mars day). Applied to
+    the clock, it asserts that Earth midnight is Mars midnight.
+    Those midnights are independent; the planets are not tidally
+    locked to each other.
+
+    It is not the classic Julian-day-starts-at-noon bug either.
+    That would be a clean 12 hours. 11h 21m at epoch is exactly
+    “whatever MTC happened to be when UTC was 00:00 on the chosen
+    day.”
+
+8.4 Two different questions
+
+    “What MCE civil label does this instant have in a calendar
+    whose epoch I chose?” is answered, roughly, by the current
+    code.
+
+    “What time is it on Mars?” in the sense of MTC, Mars24, or a
+    settler at Airy-0 is a different question. The gem’s pitch
+    (Time-like library, stretched NASA clock, Airy-0, people
+    living there) sounds like the second. The epoch construction
+    implements the first.
+
+    A design that matched the article’s own astronomy would keep
+    the MCE month/year scheme but set 00:00 to Airy-0 mean
+    midnight (or to the equinox instant on 1/1/1, then let the
+    clock run in mean solar time). The date of New Year could
+    still sit near the equinox; the clock would then read ~01:06
+    when MTC does. The 11-hour error would disappear without
+    changing the leap-year rules or the 24-month layout.
+
+    Until that distinction is made, the offset is a definition of
+    midnight, not a failed calculation.
