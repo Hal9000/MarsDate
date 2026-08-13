@@ -287,9 +287,11 @@ NASA calibration point 2000-01-06 00:00 UTC (Mars24 worked
 example: MST 23:59:39): library stretched reads 12:40:16, same
 ~11h 19m phase error.
 
-This is not a rounding or arithmetic failure. The conversion is
-doing what it was written to do. The mistake is in what that
-arithmetic is for.
+The conversion is doing what the code was written to do. That is
+not the same as what the calendar was meant to do. The author
+did not intend Earth midnight to equal Mars midnight. The 11h
+gap is the code using UTC midnight of the overlapping Earth date
+as Mars 1/1/1 00:00 anyway.
 
 
 8.1 What the library actually defines
@@ -318,10 +320,21 @@ arithmetic is for.
     changes in daylight at Airy-0. A stretched readout of 13:47
     is mid-afternoon on that clock while MTC is 01:06.
 
-8.3 The reasoning slip
+8.3 Intent vs implementation
 
-    The README wants three things that do not automatically
-    coincide:
+    The article’s “crude conversion” is about overlapping dates:
+    take a timepoint and ask which civil day it falls on in the
+    other calendar. It does not say that 00:00 UTC is 00:00 MTC.
+    The author did not intend Earth midnight = Mars midnight.
+
+    The code still does that. JulianDay1 is 1 Jan 22, and
+    MarsDateTime.new(1,1,1) has mems = 0, which is Earth
+    0001-01-22 00:00:00. Time of day is then “milliseconds since
+    that UTC midnight, mod one sol.” That is an implementation
+    accident, not the calendar’s stated design.
+
+    The README still wants three things that the code does not
+    separate:
 
       1. MCE year 1 near Earth year 1 (so year numbers keep the
          1.88 ratio).
@@ -331,14 +344,9 @@ arithmetic is for.
 
     (1) and (2) are about which sol is 1/1. (3) is about when
     that sol starts and what the clock means. The implementation
-    collapsed them into one rule: “the start of that Earth civil
-    day is the start of that Mars sol.”
-
-    That is the “crude conversion” the article describes for
-    dates (which Earth day overlaps which Mars day). Applied to
-    the clock, it asserts that Earth midnight is Mars midnight.
-    Those midnights are independent; the planets are not tidally
-    locked to each other.
+    used the start of the overlapping Earth civil day as the
+    start of the Mars sol. That is how a date heuristic leaked
+    into the clock.
 
     It is not the classic Julian-day-starts-at-noon bug either.
     That would be a clean 12 hours. 11h 21m at epoch is exactly
@@ -347,15 +355,13 @@ arithmetic is for.
 
 8.4 Two different questions
 
-    “What MCE civil label does this instant have in a calendar
-    whose epoch I chose?” is answered, roughly, by the current
-    code.
+    “What MCE civil label does this instant have if 1/1/1 00:00
+    is Earth Jan 22 00:00 UTC?” is what the current code answers.
 
     “What time is it on Mars?” in the sense of MTC, Mars24, or a
-    settler at Airy-0 is a different question. The gem’s pitch
-    (Time-like library, stretched NASA clock, Airy-0, people
-    living there) sounds like the second. The epoch construction
-    implements the first.
+    settler at Airy-0 is what the article’s Airy-0 / stretched-
+    time discussion points at. The epoch construction implements
+    the first, against the author’s intent.
 
     A design that matched the article’s own astronomy would keep
     the MCE month/year scheme but set 00:00 to Airy-0 mean
