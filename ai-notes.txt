@@ -4,7 +4,9 @@ Scope: accuracy and functionality only (not style, structure, or
 documentation cleanup except where docs disagree with the code).
 
 Reviewed against the implementation, tests, README examples, and
-direct probes on Ruby 3.2.3 (2026-08-12).
+direct probes on Ruby 3.2.3 (2026-08-12). Re-run the probes with:
+
+    ruby test/probe_marsdate.rb
 
 
 1. Earth–Mars conversion
