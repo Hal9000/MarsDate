@@ -94,10 +94,12 @@ Library has essentially no dependents, so dropping unmarked names
 is acceptable (not a serious compatibility concern).
 
 Leaning: mark both. Accessors like `mtc_hour` / `canonical_hour`
-(and minutes/seconds). `to_s` prints both, labeled. `strftime` is
-the awkward case because `%H` is unmarked in Ruby; mark it with
-`strftime(fmt, clock: :stretched)` so `%H` is scoped, or drop `%H`
-and use only dedicated specifiers for each scale.
+(and minutes/seconds). `to_s` prints both, labeled.
+
+`strftime` is a C/Ruby Time leftover; `%H` is unmarked. Options
+(see discussion): two methods (`format_mtc` / `format_canonical`);
+one method plus `clock:`; clock-view objects (`mtc.strftime`);
+or drop format strings and return HMS / ISO-like strings.
 
 Arithmetic in seconds should stay SI (or sols), not “stretched
 seconds.” Round-trip each display through the store without going
