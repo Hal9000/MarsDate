@@ -13,9 +13,10 @@ Status key: **must decide** · **decide soon** · **can wait** · **no design ne
 
 - **1.** 00:00 is official MTC (Airy-0 mean midnight). Not a slid
   Earth-midnight epoch.
-- **5.** Keep both stretched and canonical as *views* of one stored
-  SI duration since that midnight (e.g. real milliseconds into the
-  sol, or the MSD fraction). Do not store two parallel HMS fields.
+- **5.** Keep both clocks as *views* of one SI duration since MTC
+  midnight. Do not store two parallel HMS fields. Naming undecided:
+  stretched/MTC vs SI, unstretched, or **extended** (24:39 clock:
+  extend the *day*, not the units). “Canonical” is a poor label.
 
 
 ## Must decide before a real fix
