@@ -88,13 +88,16 @@ ambiguous. A keyword with a default is enough, e.g.
 7th positional argument.
 
 That does not finish the job. Unmarked accessors (`hr` / `min` /
-`sec`) and `strftime` `%H:%M:%S` still have to mean one scale.
-`%P:%Q:%R` and `shr` / `smin` / `ssec` can stay the other. `to_s`
-must pick which pair it prints (or print both, as now). The
-remaining choice is which scale is the *default* for those unmarked
-names — likely MTC/stretched if official time is the headline, which
-would swap the current meaning of `%H` and `hr` (today they are
-canonical).
+`sec`) and `strftime` `%H:%M:%S` still have to mean one scale —
+unless **both** scales are marked and there is no default `hr`/`%H`.
+Library has essentially no dependents, so dropping unmarked names
+is acceptable (not a serious compatibility concern).
+
+Leaning: mark both. Accessors like `mtc_hour` / `canonical_hour`
+(and minutes/seconds). `to_s` prints both, labeled. `strftime` is
+the awkward case because `%H` is unmarked in Ruby; mark it with
+`strftime(fmt, clock: :stretched)` so `%H` is scoped, or drop `%H`
+and use only dedicated specifiers for each scale.
 
 Arithmetic in seconds should stay SI (or sols), not “stretched
 seconds.” Round-trip each display through the store without going
