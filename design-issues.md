@@ -17,6 +17,9 @@ Status key: **must decide** · **decide soon** · **can wait** · **no design ne
   midnight. Do not store two parallel HMS fields. Naming undecided:
   stretched/MTC vs SI, unstretched, or **extended** (24:39 clock:
   extend the *day*, not the units). “Canonical” is a poor label.
+  Wanted: a 3-letter complement to MTC. Candidates: **MXT** (Mars
+  eXtended Time), **MTE** (Mars Time Extended). Avoid **MET** (NASA
+  Mission Elapsed Time) and **MST** (Airy Mean Time / Earth MST).
 
 
 ## Must decide before a real fix
