@@ -9,9 +9,18 @@ Related: `ai-notes.txt` (findings), `test/probe_marsdate.rb` (probes),
 Status key: **must decide** · **decide soon** · **can wait** · **no design needed**
 
 
+## Decisions so far
+
+- **1.** 00:00 is official MTC (Airy-0 mean midnight). Not a slid
+  Earth-midnight epoch.
+- **5.** Keep both stretched and canonical as *views* of one stored
+  SI duration since that midnight (e.g. real milliseconds into the
+  sol, or the MSD fraction). Do not store two parallel HMS fields.
+
+
 ## Must decide before a real fix
 
-### 1. What 00:00 is
+### 1. What 00:00 is — decided: MTC
 
 Official MTC (Airy-0 mean midnight, from JD in Terrestrial Time via
 MSD), or keep the current zero: UTC midnight of the overlapping Earth
@@ -62,9 +71,23 @@ compatibility flag / old-epoch constructor required?
 
 ## Decide soon (not blocking a first MTC-based rewrite)
 
-### 5. Canonical 24:39 clock
+### 5. Canonical 24:39 clock — decided: keep as a view
 
-Keep it as a second readout of the same fractional sol, or drop it?
+Keep both clocks. Store one SI quantity (real ms since MTC midnight,
+or the fractional part of MSD). Print/retrieve as stretched 24h
+(MTC) or as canonical 24:39 (SI hours/minutes/seconds).
+
+These are not two midnights. They are two rulers from the same 00:00.
+No physical inconsistency if both are derived on demand from the
+store. Do not persist `@mhrs/@mmin/@msec` and `@shr/@smin/@ssec`
+separately (that is how they can disagree today).
+
+**Open (API):** `MarsDateTime.new(y, m, d, h, min, s)` is then
+ambiguous. Are `h,min,s` stretched or canonical? Must pick a
+default and a way to pass the other (keyword, flag, or a second
+constructor). Arithmetic in seconds should stay SI (or sols), not
+“stretched seconds.” Round-trip each display through the store
+without going through the other display’s rounded HMS.
 
 ### 6. Earth DateTime with a non-zero offset
 
