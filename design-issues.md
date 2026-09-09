@@ -83,11 +83,22 @@ store. Do not persist `@mhrs/@mmin/@msec` and `@shr/@smin/@ssec`
 separately (that is how they can disagree today).
 
 **Open (API):** `MarsDateTime.new(y, m, d, h, min, s)` is then
-ambiguous. Are `h,min,s` stretched or canonical? Must pick a
-default and a way to pass the other (keyword, flag, or a second
-constructor). Arithmetic in seconds should stay SI (or sols), not
-“stretched seconds.” Round-trip each display through the store
-without going through the other display’s rounded HMS.
+ambiguous. A keyword with a default is enough, e.g.
+`clock: :stretched` (MTC) or `clock: :canonical`, rather than a
+7th positional argument.
+
+That does not finish the job. Unmarked accessors (`hr` / `min` /
+`sec`) and `strftime` `%H:%M:%S` still have to mean one scale.
+`%P:%Q:%R` and `shr` / `smin` / `ssec` can stay the other. `to_s`
+must pick which pair it prints (or print both, as now). The
+remaining choice is which scale is the *default* for those unmarked
+names — likely MTC/stretched if official time is the headline, which
+would swap the current meaning of `%H` and `hr` (today they are
+canonical).
+
+Arithmetic in seconds should stay SI (or sols), not “stretched
+seconds.” Round-trip each display through the store without going
+through the other display’s rounded HMS.
 
 ### 6. Earth DateTime with a non-zero offset
 
