@@ -133,5 +133,10 @@ class CalendarTest < Minitest::Test
     eq = report[:ls0_msd]
     assert_equal [1, 1, 1], Cal.ymd_from_msd(eq)
     assert_equal Cal::EPOCH_MSD, eq.floor
+    # Caption only: TT read as UT. Does not move EPOCH_MSD.
+    cap = report[:epoch_earth_if_tt_were_ut]
+    assert_equal [1, 1, 23, 13, 40],
+                 [cap.year, cap.month, cap.day, cap.hour, cap.min]
+    assert_in_delta 27, cap.sec, 1
   end
 end

@@ -87,8 +87,8 @@ class MarsDateTime
     end
 
     # TT−UT in seconds. Leap table / polynomial from 1900; before
-    # that, 0 (treat the civil digits as TT). Year-1 captions are
-    # not a real ΔT model.
+    # that, 0 (treat the civil digits as TT). This is not a
+    # historical ΔT model. Year-1 Earth times are captions only.
     def tt_minus_ut(earth)
       dt = earth.to_datetime
       return 0.0 if dt.to_date < Date.new(1900, 1, 1)
@@ -185,6 +185,9 @@ class MarsDateTime
       # Allison Ls is fitted for ~1874–2127; year 1 is an extrapolation.
       # Seed the search at the article’s “late January of Year 1.”
       # Calendar::EPOCH_MSD is the frozen floor of this search.
+      #
+      # Earth fields treat JD_TT as UT (ΔT = 0). A real 1 CE ΔT is a
+      # few hours and would only slide these captions, not EPOCH_MSD.
       hint = DateTime.new(1, 1, 22, 12, 0, 0)
       around = hint.ajd.to_f
       eq_tt = vernal_equinox_jd_tt(around)
@@ -193,7 +196,7 @@ class MarsDateTime
       midnight_tt = jd_tt_from_msd(epoch_msd)
       frac = eq_msd - epoch_msd
       {
-        caveat: 'Allison Ls extrapolated to 1 CE; Earth times treat JD_TT as UT',
+        caveat: 'Allison Ls extrapolated to 1 CE; Earth times treat JD_TT as UT (no year-1 ΔT)',
         ls0_jd_tt: eq_tt,
         ls0_msd: eq_msd,
         ls0_mtc: format_hms(*hours_to_hms(frac * 24.0)),
