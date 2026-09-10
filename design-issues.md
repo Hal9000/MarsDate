@@ -4,8 +4,8 @@ The clock/calendar core is implemented. Sections below the
 established list are the review record (what we decided and why).
 They are not a backlog of open design.
 
-Related: `ai-notes.txt` (findings), `test/probe_marsdate.rb` (probes),
-`conversation.md` (review thread), `timezones.md` (parked).
+Related: `conversation.md` (review thread), `timezones.md` (parked),
+`docs/history/README.md` (the removed 1.x review artifacts).
 
 
 ## Established decisions
@@ -271,9 +271,11 @@ time are done.
 Done (do not re-open):
 
 - Taurus sols past 24/25 rejected on construct
-- `hours_to_hms` does not emit second 60
+- `hours_to_hms` does not emit second 60 or MTC 24:00 on the
+  previous sol
 - `Date` works with `-` and `<=>`
-- CLI `calendar yyyy`; `m2e` keeps HMS as MXT
+- CLI `calendar yyyy`; other years do not highlight today;
+  `m2e` keeps HMS as MXT; errors exit nonzero
 - `to_yaml_properties` is `@msd`
 - Earth↔Mars round-trips in the Minitest suites (sub-second)
 - `format("foo%")` keeps the trailing `%`
