@@ -11,7 +11,7 @@ def usage
     marsdate today          # today's Martian date
     marsdate now            # today's Martian date/time
 
-    marsdate calendar yyyy  # Martian calendar for yyyy (HTML)   **FIXME**
+    marsdate calendar yyyy  # Martian calendar for yyyy (HTML)
     marsdate calendar       # this year's Martian calendar (HTML)
 
     marsdate e2m yyyy-mm-dd hh:mm:ss   # Convert Earth date to Mars date,
@@ -32,7 +32,7 @@ def command(cmd)
     when "now"
       puts MarsDateTime.now
     when "calendar"
-      calendar   # fix later
+      calendar
     else
       abort "Unknown command '#{cmd}'"
   end
@@ -70,8 +70,8 @@ end
 
 class CalendarHTML
   def month_header(n)
-    @out.puts "<tr><td colspan=7"
-    @out.puts "<b><center><font size=4 face=arial color=red>#{MarsDateTime::Months[n]}</font><center></b>"
+    @out.puts "<tr><td colspan=7>"
+    @out.puts "<b><center><font size=4 face=arial color=red>#{MarsDateTime::Months[n]}</font></center></b>"
     @out.puts "</td></tr>"
     @out.puts "<tr bgcolor=#FFA833>"
     @out.puts "<td width=3%><font size=3 face='arial'>Sun</font></td>"
@@ -81,7 +81,6 @@ class CalendarHTML
     @out.puts "<td width=3%><font size=3 face='arial'>Thu</font></td>"
     @out.puts "<td width=3%><font size=3 face='arial'>Fri</font></td>"
     @out.puts "<td width=3%><font size=3 face='arial'>Sat</font></td>"
-    @out.puts "</font>"
     @out.puts "</tr>"
   end
 
@@ -161,8 +160,8 @@ class CalendarHTML
 end
 
 
-def calendar
-  year ||= MarsDateTime.today.year
+def calendar(year = nil, _extra = nil)
+  year = (year || MarsDateTime.today.year).to_i
   CalendarHTML.new(year)
 end
 
