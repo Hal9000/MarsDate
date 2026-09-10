@@ -35,7 +35,7 @@ class MarsDateTime
   alias day  sol
 
   # Named-clock readout of one instant. MarsDateTime.mxt(...) constructs;
-  # md.mxt reads. %H/%M/%S on the view are this clock.
+  # md.mxt reads. Date fields are the parent's; %H/%M/%S are this clock.
   class ClockView
     attr_reader :scale
 
@@ -56,6 +56,17 @@ class MarsDateTime
       @scale == :mxt ? @parent.mxt_sec : @parent.mtc_sec
     end
 
+    def year;        @parent.year;        end
+    def month;       @parent.month;       end
+    def sol;         @parent.sol;         end
+    def day_of_week; @parent.day_of_week; end
+    def month_name;  @parent.month_name;  end
+    def dow;         @parent.dow;         end
+    def year_sol;    @parent.year_sol;    end
+    def epoch_sol;   @parent.epoch_sol;   end
+    def msd;         @parent.msd;         end
+    def earth_date;  @parent.earth_date;  end
+
     def to_s
       TimeScale.format_hms(hour, min, sec)
     end
@@ -64,10 +75,9 @@ class MarsDateTime
       "#<#{@scale.to_s.upcase} #{self}>"
     end
 
-    def strftime(fmt)
-      # %H/%M/%S are this clock; %P/%Q/%R are the other.
-      alt = @scale == :mxt ? @parent.mtc : @parent.mxt
-      @parent.send(:strftime_with, fmt, hour, min, sec, alt.hour, alt.min, alt.sec)
+    # Specifier list inspired by Time#strftime. %H/%M/%S/%X are this clock.
+    def format(fmt)
+      @parent.send(:format_with, fmt, hour, min, sec)
     end
   end
 
@@ -179,21 +189,21 @@ class MarsDateTime
   end
 
   def inspect
-    format('%d/%02d/%02d (%d, %d) %s MXT %s MTC %s MSD %.8f',
-           @year, @month, @sol, @year_sol, @epoch_sol, @day_of_week,
-           format_mxt, format_mtc, @msd)
+    sprintf('%d/%02d/%02d (%d, %d) %s MXT %s MTC %s MSD %.8f',
+            @year, @month, @sol, @year_sol, @epoch_sol, @day_of_week,
+            format_mxt, format_mtc, @msd)
   end
 
   def to_s
     "#{@day_of_week}, #{month_name} #{@sol}, #{@year} at MXT #{format_mxt} / MTC #{format_mtc}"
   end
 
-  def format_mtc
-    mtc.to_s
+  def format_mtc(fmt = nil)
+    fmt ? format_with(fmt, @mtc_hour, @mtc_min, @mtc_sec) : mtc.to_s
   end
 
-  def format_mxt
-    mxt.to_s
+  def format_mxt(fmt = nil)
+    fmt ? format_with(fmt, @mxt_hour, @mxt_min, @mxt_sec) : mxt.to_s
   end
 
   def leap?
@@ -248,10 +258,10 @@ class MarsDateTime
     TimeScale.earth_from_msd(@msd)
   end
 
-  def strftime(fmt)
-    # Temporary unmarked %H = MTC; %P = MXT. Prefer md.mtc / md.mxt.
-    strftime_with(fmt, @mtc_hour, @mtc_min, @mtc_sec,
-                  @mxt_hour, @mxt_min, @mxt_sec)
+  # Date tokens plus MXT for %H/%M/%S/%X. Specifier list inspired by
+  # Time#strftime. Same as format_mxt(fmt). MTC: format_mtc(fmt) or md.mtc.format.
+  def format(fmt)
+    format_mxt(fmt)
   end
 
   def self.civil(year, month, sol, hour, min, sec, clock)
@@ -261,18 +271,14 @@ class MarsDateTime
   end
   private_class_method :civil
 
-  def strftime_with(fmt, hour, min, sec, alt_hour, alt_min, alt_sec)
-    str = fmt.dup
-    pieces = str.scan(/(%.|[^%]+)/).flatten
+  def format_with(fmt, hour, min, sec)
+    pieces = fmt.to_s.scan(/(%.|[^%]+)/).flatten
     final = ''
     zmonth = '%02d' % @month
     zsol = '%02d' % @sol
     zhh = '%02d' % hour
     zmm = '%02d' % min
     zss = '%02d' % sec.to_i
-    zhc = '%02d' % alt_hour
-    zmc = '%02d' % alt_min
-    zsc = '%02d' % alt_sec.to_i
 
     pieces.each do |piece|
       case piece
@@ -298,16 +304,13 @@ class MarsDateTime
       when '%n'; final << "\n"
       when '%t'; final << "\t"
       when '%%'; final << '%'
-      when '%P'; final << zhc
-      when '%Q'; final << zmc
-      when '%R'; final << zsc
       else
         final << piece
       end
     end
     final
   end
-  private :strftime_with
+  private :format_with
 
   private
 

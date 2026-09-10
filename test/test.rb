@@ -71,8 +71,14 @@ class MarsDateTest < Minitest::Test
     assert_equal :mtc, m.mtc.scale
     assert_equal m.format_mxt, m.mxt.to_s
     assert_equal m.format_mtc, m.mtc.to_s
-    assert_equal '13', m.mxt.strftime('%H')
-    assert_equal '12', m.mtc.strftime('%H')
+    assert_equal '13', m.format('%H')
+    assert_equal '13', m.format_mxt('%H')
+    assert_equal '13', m.mxt.format('%H')
+    assert_equal '12', m.format_mtc('%H')
+    assert_equal '12', m.mtc.format('%H')
+    assert_equal m.year, m.mxt.year
+    assert_equal m.month_name, m.mtc.month_name
+    refute_respond_to m, :strftime
   end
 
   def test_at_rolls_into_next_sol
@@ -191,55 +197,61 @@ class MarsDateTest < Minitest::Test
     end
   end
 
-  def test_strftime_dates
+  def test_format_dates
     m1 = MarsDateTime.new(1069, 15, 24)
     m2 = MarsDateTime.new(933, 6, 4)
     m3 = MarsDateTime.new(1055, 14, 1)
 
-    assert_equal 'Mon', m1.strftime('%a')
-    assert_equal 'Monday', m1.strftime('%A')
-    assert_equal 'Aug', m1.strftime('%b')
-    assert_equal 'M-August', m1.strftime('%B')
-    assert_equal '24', m1.strftime('%d')
-    assert_equal '24', m1.strftime('%e')
-    assert_equal '1069-15-24', m1.strftime('%F')
-    assert_equal '416', m1.strftime('%j')
-    assert_equal '15', m1.strftime('%m')
-    assert_equal '0', m1.strftime('%s')
-    assert_equal '2', m1.strftime('%u')
-    assert_equal '60', m1.strftime('%U')
-    assert_equal '1', m1.strftime('%w')
-    assert_equal '1069/15/24', m1.strftime('%x')
-    assert_equal '1069', m1.strftime('%Y')
-    assert_equal "\n", m1.strftime('%n')
-    assert_equal "\t", m1.strftime('%t')
-    assert_equal '%', m1.strftime('%%')
+    assert_equal 'Mon', m1.format('%a')
+    assert_equal 'Monday', m1.format('%A')
+    assert_equal 'Aug', m1.format('%b')
+    assert_equal 'M-August', m1.format('%B')
+    assert_equal '24', m1.format('%d')
+    assert_equal '24', m1.format('%e')
+    assert_equal '1069-15-24', m1.format('%F')
+    assert_equal '416', m1.format('%j')
+    assert_equal '15', m1.format('%m')
+    assert_equal '0', m1.format('%s')
+    assert_equal '2', m1.format('%u')
+    assert_equal '60', m1.format('%U')
+    assert_equal '1', m1.format('%w')
+    assert_equal '1069/15/24', m1.format('%x')
+    assert_equal '1069', m1.format('%Y')
+    assert_equal "\n", m1.format('%n')
+    assert_equal "\t", m1.format('%t')
+    assert_equal '%', m1.format('%%')
 
-    assert_equal 'Wed', m2.strftime('%a')
-    assert_equal 'Wednesday', m2.strftime('%A')
-    assert_equal 'Leo', m2.strftime('%b')
-    assert_equal 'Leo', m2.strftime('%B')
-    assert_equal '04', m2.strftime('%d')
-    assert_equal ' 4', m2.strftime('%e')
-    assert_equal '933-06-04', m2.strftime('%F')
-    assert_equal '144', m2.strftime('%j')
-    assert_equal '06', m2.strftime('%m')
-    assert_equal '0', m2.strftime('%s')
-    assert_equal '4', m2.strftime('%u')
-    assert_equal '21', m2.strftime('%U')
-    assert_equal '3', m2.strftime('%w')
-    assert_equal '933/06/04', m2.strftime('%x')
-    assert_equal '933', m2.strftime('%Y')
+    assert_equal 'Wed', m2.format('%a')
+    assert_equal 'Wednesday', m2.format('%A')
+    assert_equal 'Leo', m2.format('%b')
+    assert_equal 'Leo', m2.format('%B')
+    assert_equal '04', m2.format('%d')
+    assert_equal ' 4', m2.format('%e')
+    assert_equal '933-06-04', m2.format('%F')
+    assert_equal '144', m2.format('%j')
+    assert_equal '06', m2.format('%m')
+    assert_equal '0', m2.format('%s')
+    assert_equal '4', m2.format('%u')
+    assert_equal '21', m2.format('%U')
+    assert_equal '3', m2.format('%w')
+    assert_equal '933/06/04', m2.format('%x')
+    assert_equal '933', m2.format('%Y')
 
-    assert_equal 'Sag', m3.strftime('%b')
-    assert_equal 'Sagittarius', m3.strftime('%B')
+    assert_equal 'Sag', m3.format('%b')
+    assert_equal 'Sagittarius', m3.format('%B')
+
+    line = '%A, %B %e, %Y %H:%M:%S'
+    assert_equal m1.format(line), m1.format_mxt(line)
+    assert_equal m1.format(line), m1.mxt.format(line)
+    assert_equal m1.format_mtc(line), m1.mtc.format(line)
   end
 
-  def test_strftime_clocks_at_midnight
+  def test_format_clocks_at_midnight
     m = MarsDateTime.new(1, 1, 1)
-    assert_equal '00', m.strftime('%H')
-    assert_equal '00', m.strftime('%P')
-    assert_equal '00:00:00', m.strftime('%X')
+    assert_equal '00', m.format('%H')
+    assert_equal '00', m.format_mtc('%H')
+    assert_equal '00:00:00', m.format('%X')
+    assert_equal '%P', m.format('%P')
   end
 
   def test_comparisons

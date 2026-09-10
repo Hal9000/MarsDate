@@ -13,10 +13,10 @@ Status key: **must decide** · **decide soon** · **can wait** · **no design ne
 
 These are agreed. `MarsDateTime` 2.0 stores MSD and implements
 them. Constructors: `mxt` / `mtc` / `at` / `new` (MXT civil).
-Views: `md.mxt` / `md.mtc` (`strftime` `%H` is that clock).
-Unmarked `strftime` `%H` is still MTC; `%P` is MXT. Formatter
-rename (`format` / `format_mxt` / `format_mtc`) is a lean, not
-coded — see below.
+Views: `md.mxt` / `md.mtc` (date delegates; `format` `%H` is that
+clock). Parent `format(fmt)` is date + **MXT**. `format_mxt(fmt)`
+same; `format_mtc(fmt)` is MTC. No-arg `format_mxt` / `format_mtc`
+are HMS. No `strftime`. No `%P`/`%Q`/`%R`.
 
 **Midnight and epoch**
 
@@ -78,10 +78,8 @@ coded — see below.
 
 - Breaking change: no compatibility flag or old-epoch constructor.
   Essentially no dependents.
-- Mark both clocks (no unmarked `hr` / `%H` that silently picks a
-  scale). Formatter shape still open: clock views (`md.mtc` /
-  `md.mxt`), two format methods, or `clock:`. `strftime` is a
-  Time leftover; `%H` stays unmarked unless scoped.
+- Mark both clocks on accessors (`mtc_hour` / `mxt_hour`). Parent
+  `format` `%H` is MXT (civil). MTC is `format_mtc` / `md.mtc`.
 - Constructors: reject invalid Y/M/D/H/M/S (Taurus past 24/25;
   MXT past the end of the sol). Arithmetic (`+`, from MSD) rolls
   into the next sol. Same pattern as Ruby `DateTime.new` vs `+`.
@@ -120,29 +118,23 @@ Year-1 `Ls=0` from the same Allison series (out of sample; fitted
 
 - Earth `DateTime` with a non-zero offset: honor the instant, or
   treat the digits as UTC? (parked)
-- Formatter rename (lean below; not coded). No `clock:` keyword.
 - Leap `/500`, Darian, longitude/LMST (deferred)
 
-**Formatter lean (not coded)**
+**Formatter (decided)**
 
-`strftime` only approximates Ruby `Time#strftime` (`%P`/`%Q`/`%R`
-are ours; `%s` is not Unix; unknown tokens pass through). Keep the
-specifier table; drop the antique name as the primary API.
+Specifier list inspired by `Time#strftime`; the method is `format`.
+No `strftime` alias. No `%P`/`%Q`/`%R`. Unknown tokens pass through.
 
 ```
-md.format(fmt)            # date tokens + MXT for %H/%M/%S/%X
-md.format_mxt(fmt = nil)  # nil → HMS (what format_mxt is now)
-md.format_mtc(fmt = nil)  # nil → HMS
-md.mxt.format(fmt = nil)  # %H is this clock
-md.mtc.format(fmt = nil)
-md.strftime               # alias of format (parent and views)
+md.format(fmt)            # date + MXT for %H/%M/%S/%X
+md.format_mxt(fmt = nil)  # nil → HMS; fmt → same as format
+md.format_mtc(fmt = nil)  # nil → HMS; fmt → date + MTC
+md.mxt.format(fmt)        # %H is this clock
+md.mtc.format(fmt)
 ```
 
-Parent `format` uses **MXT** so it matches `new(y,m,sol,h)` (civil).
-MTC is by name: `format_mtc` / `md.mtc`. No `clock:` keyword.
-Invented `%P`/`%Q`/`%R` can die once views exist; until then they
-stay as “the other clock.” `to_s` stays the labeled prose sentence.
-Do not implement until this lean is accepted.
+Parent `format` matches `new(y,m,sol,h)` (civil MXT). MTC is by
+name. No `clock:` keyword. `to_s` stays the labeled prose sentence.
 
 
 ## Must decide before a real fix
@@ -223,9 +215,8 @@ is acceptable (not a serious compatibility concern).
 Leaning: mark both. Accessors like `mtc_hour` / `mxt_hour`.
 `to_s` prints both, labeled.
 
-`strftime` is a C/Ruby Time leftover; `%H` is unmarked. Current
-code: parent `%H` = MTC, `%P` = MXT; views scope `%H`. Proposed
-rename is in **Formatter lean** above (not coded).
+Formatter is **decided** (see Established): `format` / `format_mxt`
+/ `format_mtc`; no `strftime`; no `%P`/`%Q`/`%R`.
 
 Arithmetic in seconds should stay SI (or sols), not “stretched
 seconds.” Round-trip each display through the store without going
@@ -268,9 +259,9 @@ ambiguous until MCE sol boundaries match Airy-0 midnight. MSD/MTC
 
 ### 11. Later API
 
-Longitude / LMST (`MTC − λ/15°`). YAML ivar names. `strftime` nits
-(`%s`, trailing `%`) until the formatter rename. CLI calendar year
-and `m2e` time are done.
+Longitude / LMST (`MTC − λ/15°`). YAML ivar names. `format` nits
+(`%s` is this clock’s seconds, not Unix; trailing `%` drops).
+CLI calendar year and `m2e` time are done.
 
 
 ## No design needed (ordinary bugs)
