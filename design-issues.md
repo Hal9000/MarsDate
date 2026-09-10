@@ -83,13 +83,13 @@ These are agreed. The current code does **not** implement them yet.
 `MarsDateTime::TimeScale` (`lib/marsdate/timescale.rb`) implements
 UTC→TT→MSD→MTC/MXT for 1972+ (IERS leaps) and matches Mars24
 (2000-01-06 00:00 UTC → MTC 23:59:39.3). Tests:
-`ruby test/timescale_test.rb`.
+`ruby test/timescale_test.rb` (Minitest).
 
 `MarsDateTime::Calendar` (`lib/marsdate/calendar.rb`) maps MCE
 year/month/sol onto that timeline. Leap rules are unchanged
 (`/100` except `/1000`; closed-form `leaps_through`). Constructors
 are still the old Earth-midnight code. Tests:
-`ruby test/calendar_test.rb`.
+`ruby test/calendar_test.rb` (Minitest).
 
 Year-1 `Ls=0` from the same Allison series (out of sample; fitted
 ~1874–2127), seeding at 1 Jan 22:
