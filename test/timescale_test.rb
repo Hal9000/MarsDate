@@ -67,6 +67,16 @@ class TimeScaleTest < Minitest::Test
     assert_in_delta 277.19, ls, 0.05
   end
 
+  def test_earth_from_msd_round_trip
+    dt = DateTime.new(2000, 1, 6, 0, 0, 0)
+    back = TS.earth_from_msd(TS.msd(dt))
+    assert_in_delta 0, (back - dt).to_f, 1e-9
+
+    dt = DateTime.new(2026, 8, 13, 0, 6, 56)
+    back = TS.earth_from_msd(TS.msd(dt))
+    assert_in_delta 0, (back - dt).to_f, 1e-8
+  end
+
   def test_year1_equinox_sol
     hint = DateTime.new(1, 1, 22, 12, 0, 0)
     eq = TS.vernal_equinox_jd_tt(hint.ajd.to_f)

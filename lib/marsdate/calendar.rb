@@ -1,5 +1,4 @@
 # MCE civil calendar on the official Mars timeline.
-# Does not change MarsDateTime constructors or fields.
 #
 #   integer MSD = EPOCH_MSD + sol_index(year, month, sol)
 #

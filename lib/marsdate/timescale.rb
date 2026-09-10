@@ -1,5 +1,4 @@
 # Official Mars time scales (NASA/Allison / Mars24).
-# Does not change MarsDateTime's existing epoch or fields.
 #
 #   Earth instant → JD (UT) → JD (TT) → MSD → MTC / MXT
 #
@@ -84,7 +83,16 @@ class MarsDateTime
 
     def jd_tt(earth, jd_tt: nil)
       return jd_tt.to_f if jd_tt
-      jd_ut(earth) + tt_utc(earth) / SECONDS_PER_DAY
+      jd_ut(earth) + tt_minus_ut(earth) / SECONDS_PER_DAY
+    end
+
+    # TT−UT in seconds. Leap table / polynomial from 1900; before
+    # that, 0 (treat the civil digits as TT). Year-1 captions are
+    # not a real ΔT model.
+    def tt_minus_ut(earth)
+      dt = earth.to_datetime
+      return 0.0 if dt.to_date < Date.new(1900, 1, 1)
+      tt_utc(dt)
     end
 
     # Mars Sol Date (Mars24 C-2).
@@ -201,6 +209,33 @@ class MarsDateTime
       ((msd - MSD_EPOCH_SHIFT + MSD_FINE) * SOL_DAYS) + MSD_JDTT_OFFSET
     end
 
+    # Invert jd_tt: TT → UT. Before 1900, treat TT as UT.
+    def jd_ut_from_jd_tt(jd_tt)
+      j = jd_tt.to_f
+      guess = j - 69.184 / SECONDS_PER_DAY
+      8.times do
+        earth = datetime_from_ajd(guess)
+        if earth.to_date < Date.new(1900, 1, 1)
+          return j
+        end
+        nxt = j - tt_utc(earth) / SECONDS_PER_DAY
+        return nxt if (nxt - guess).abs < 1e-14
+        guess = nxt
+      end
+      guess
+    end
+
+    def earth_from_msd(msd)
+      datetime_from_ajd(jd_ut_from_jd_tt(jd_tt_from_msd(msd)))
+    end
+
+    def sol_fraction_of(msd)
+      frac = msd.to_f % 1.0
+      frac += 1.0 if frac < 0
+      frac = 0.0 if frac >= 1.0
+      frac
+    end
+
     def tai_utc_from_table(date)
       value = TAI_UTC_STEPS.first[1]
       TAI_UTC_STEPS.each do |d, v|
@@ -235,7 +270,7 @@ class MarsDateTime
       h = hours.floor
       minf = (hours - h) * 60.0
       m = minf.floor
-      s = (minf - m) * 60.0
+      s = ((minf - m) * 60.0).round(4)
       if s >= 59.9995
         s = 0.0
         m += 1
