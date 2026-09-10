@@ -22,7 +22,8 @@ MCE sol at 00:00; `now` is the current instant.
 Design: [`design-issues.md`](design-issues.md).
 
 Tests (Minitest): `ruby test/timescale_test.rb`,
-`ruby test/calendar_test.rb`, `ruby test/test.rb`.
+`ruby test/calendar_test.rb`, `ruby test/test.rb`,
+`ruby test/cli_test.rb`.
 Changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## API (2.0)

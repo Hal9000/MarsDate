@@ -263,6 +263,17 @@ class MarsDateTest < Minitest::Test
     assert_equal 'x%', m.format('x%%')
   end
 
+  def test_mtc_just_before_midnight_stays_on_previous_sol
+    next_midnight = (MarsDateTime::EPOCH_MSD + 11).to_f
+    m = MarsDateTime.at(next_midnight.prev_float)
+
+    assert_equal [1, 1, 11], [m.year, m.month, m.sol]
+    assert_equal [23, 59], [m.mtc_hour, m.mtc_min]
+    assert_operator m.mtc_sec, :<, 60
+    assert_equal '23:59:59.999', m.format_mtc
+    assert_equal '23:59:59 MTC', m.format_mtc('%H:%M:%S %Z')
+  end
+
   def test_date_is_a_valid_operand
     d = Date.new(2010, 1, 1)
     m = MarsDateTime.new(d)

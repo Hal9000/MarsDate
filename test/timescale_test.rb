@@ -61,6 +61,13 @@ class TimeScaleTest < Minitest::Test
     assert_includes 88_775.0..88_776.0, TS::SOL_SI_SECONDS
   end
 
+  def test_mtc_rounding_stays_below_24_hours
+    h, m, s = TS.hours_to_hms(24.0.prev_float, limit: 24)
+
+    assert_equal [23, 59], [h, m]
+    assert_operator s, :<, 60
+  end
+
   def test_ls_j2000_region
     dt = DateTime.new(2000, 1, 6, 0, 0, 0)
     ls = TS.ls_deg(TS.jd_tt(dt))

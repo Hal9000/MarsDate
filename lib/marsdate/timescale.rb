@@ -114,7 +114,7 @@ class MarsDateTime
     end
 
     def mtc_hms(earth = nil, jd_tt: nil)
-      hours_to_hms(mtc_hours(earth, jd_tt: jd_tt))
+      hours_to_hms(mtc_hours(earth, jd_tt: jd_tt), limit: 24)
     end
 
     # SI seconds since Airy-0 mean midnight (0 ... SOL_SI_SECONDS).
@@ -269,14 +269,20 @@ class MarsDateTime
       end
     end
 
-    def hours_to_hms(hours)
+    def hours_to_hms(hours, limit: nil)
       h = hours.floor
       minf = (hours - h) * 60.0
       m = minf.floor
       s = ((minf - m) * 60.0).round(4)
       if s >= 59.9995
-        s = 0.0
-        m += 1
+        if limit && h == limit - 1 && m == 59
+          # The instant is still inside the half-open clock interval.
+          # Keep its rounded display below the following midnight.
+          s = 59.9994
+        else
+          s = 0.0
+          m += 1
+        end
       end
       if m >= 60
         m = 0

@@ -48,9 +48,8 @@ end
 def invoke(cmd, *args)
   send(cmd, *args)
 rescue => err
-  puts "Error in calling: #{cmd}(#{args.inspect[1..-2]})"
-  puts err.backtrace
-  exit
+  warn "Error in calling #{cmd}: #{err.message}"
+  exit 1
 end
 
 def e2m(ymd, hms)
@@ -89,7 +88,7 @@ class CalendarHTML
     ndays = 28
     ndays = MarsDateTime.sols_in_month(n, year) if n == 24
     mtoday = MarsDateTime.today
-    @curmonth = mtoday.month == n
+    @curmonth = mtoday.year == year && mtoday.month == n
     list = [""]*dow + (1..ndays).to_a
     l2 = []
     loop do
@@ -231,5 +230,9 @@ case
     command(cmd)
   when [2,3].include?(args)
     invoke(ARGV[0], ARGV[1], ARGV[2])
+  else
+    warn "Wrong number of arguments (given #{args}, expected 0..3)"
+    usage
+    exit 1
 end
 
