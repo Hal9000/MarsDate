@@ -118,7 +118,9 @@ Year-1 `Ls=0` from the same Allison series (out of sample; fitted
 
 - Earth `DateTime` with a non-zero offset: honor the instant, or
   treat the digits as UTC? (parked)
-- Leap `/500`, Darian, longitude/LMST (deferred)
+- Leap `/500`, Darian (deferred)
+- Longitude / LMST / `Airy+N`: theory in [`timezones.md`](timezones.md)
+  (parked; not needed in the foreseeable future)
 
 **Formatter (decided)**
 
@@ -261,7 +263,7 @@ ambiguous until MCE sol boundaries match Airy-0 midnight. MSD/MTC
 
 ### 11. Later API
 
-Longitude / LMST (`MTC − λ/15°`). YAML ivar names. `format` nits
+Longitude / LMST / `Airy+N`: see `timezones.md` (parked). YAML ivar names. `format` nits
 (`%s` is this clock’s seconds, not Unix; trailing `%` drops).
 CLI calendar year and `m2e` time are done.
 
