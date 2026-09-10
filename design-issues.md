@@ -11,7 +11,9 @@ Status key: **must decide** · **decide soon** · **can wait** · **no design ne
 
 ## Established decisions
 
-These are agreed. The current code does **not** implement them yet.
+These are agreed. `MarsDateTime` 2.0 stores MSD and implements
+them (formatter shape still temporary: `format_mtc` / `format_mxt`,
+`strftime` `%H` = MTC, `%P` = MXT).
 
 **Midnight and epoch**
 
@@ -87,8 +89,8 @@ UTC→TT→MSD→MTC/MXT for 1972+ (IERS leaps) and matches Mars24
 
 `MarsDateTime::Calendar` (`lib/marsdate/calendar.rb`) maps MCE
 year/month/sol onto that timeline. Leap rules are unchanged
-(`/100` except `/1000`; closed-form `leaps_through`). Constructors
-are still the old Earth-midnight code. Tests:
+(`/100` except `/1000`; closed-form `leaps_through`).
+`MarsDateTime` constructors use this mapping. Tests:
 `ruby test/calendar_test.rb` (Minitest).
 
 Year-1 `Ls=0` from the same Allison series (out of sample; fitted

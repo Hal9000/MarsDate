@@ -19,12 +19,10 @@ rescue => e
   puts "#{label}: ERROR #{e.class}: #{e.message}"
 end
 
-section "JulianDay1 vs actual"
-puts "JulianDay1 constant: #{MarsDateTime::JulianDay1}"
-puts "Date(1,1,1).jd: #{Date.new(1,1,1).jd}"
-puts "Date(1,1,21).jd: #{Date.new(1,1,21).jd}"
-puts "Date(1,1,22).jd: #{Date.new(1,1,22).jd}"
-puts "EpochMCE: #{MarsDateTime::EpochMCE} jd=#{MarsDateTime::EpochMCE.jd}"
+section "Epoch"
+puts "EPOCH_MSD: #{MarsDateTime::EPOCH_MSD}"
+puts "1/1/1: #{MarsDateTime.new(1,1,1).inspect}"
+puts "1/1/1 earth_date: #{MarsDateTime.new(1,1,1).earth_date}"
 
 section "Earth Jan 22 year 1 -> Mars"
 m = MarsDateTime.new(DateTime.new(1,1,22))
@@ -47,7 +45,7 @@ section "README claimed dates at 00:00 / 12:00 / 17:00 UTC"
 [[2010,1,1],[2011,7,4],[2011,9,13],[1976,7,20]].each do |y,mo,d|
   [0,12,17].each do |h|
     m = MarsDateTime.new(DateTime.new(y,mo,d,h))
-    puts "#{y}-#{mo}-#{d} #{h}h => #{m.day_of_week} #{m.month_name} #{m.sol} #{m.year} #{m.hr}:#{m.min}:#{m.sec}"
+    puts "#{y}-#{mo}-#{d} #{h}h => #{m.day_of_week} #{m.month_name} #{m.sol} #{m.year} MXT #{m.format_mxt} MTC #{m.format_mtc}"
   end
 end
 
@@ -73,9 +71,9 @@ puts "utc=#{utc} hour=#{utc.hour} jd=#{utc.jd}"
 puts "est=#{est} hour=#{est.hour} jd=#{est.jd}"
 mu = MarsDateTime.new(utc)
 me = MarsDateTime.new(est)
-puts "mars utc: #{mu.inspect} mems=#{mu.mems}"
-puts "mars est: #{me.inspect} mems=#{me.mems}"
-puts "mems diff seconds: #{(mu.mems-me.mems)/1000.0}"
+puts "mars utc: #{mu.inspect}"
+puts "mars est: #{me.inspect}"
+puts "msd diff: #{mu.msd - me.msd}"
 
 section "Month 24 invalid sols"
 [24,25,26,27,28].each do |sol|
@@ -83,22 +81,16 @@ section "Month 24 invalid sols"
   show("nonleap 1066/24/#{sol}") { MarsDateTime.new(1066,24,sol).ymshms }
 end
 
-section "Invalid dates do not round-trip through mems"
-m = MarsDateTime.new(1,1,1,24,40,0)
-m2 = MarsDateTime.new(m.mems)
-puts "24:40:00 stored=#{m.inspect} mems=#{m.mems}"
-puts "reparsed=#{m2.inspect} mems=#{m2.mems}"
-m = MarsDateTime.new(1067,24,26)
-m2 = MarsDateTime.new(m.mems)
-puts "1067/24/26 stored=#{m.inspect} mems=#{m.mems}"
-puts "reparsed=#{m2.inspect}"
+section "Invalid dates rejected"
+show("24:40:00 MXT") { MarsDateTime.new(1,1,1,24,40,0).inspect }
+show("1067/24/26") { MarsDateTime.new(1067,24,26).inspect }
 
 section "Hour 24 beyond one sol"
 show("24:39:35") { MarsDateTime.new(1,1,1,24,39,35).inspect }
-show("24:39:35 mems vs next midnight") {
+show("24:39:35 MXT vs next midnight") {
   a = MarsDateTime.new(1,1,1,24,39,35)
   b = MarsDateTime.new(1,1,2,0,0,0)
-  [a.mems, b.mems, a.mems - b.mems, a.inspect, b.inspect]
+  [a.msd, b.msd, a.msd - b.msd, a.inspect, b.inspect]
 }
 show("24:40:00 accepted?") { MarsDateTime.new(1,1,1,24,40,0).inspect }
 show("24:59:59 accepted?") { MarsDateTime.new(1,1,1,24,59,59).inspect }
@@ -108,27 +100,26 @@ section "Roundtrip precision"
 e1 = DateTime.new(1961,5,31,12,34,56)
 m1 = MarsDateTime.new(e1)
 e2 = m1.earth_date
-puts "e1=#{e1} e2=#{e2} diff_days=#{(e2-e1).to_f} mems=#{m1.mems}"
+puts "e1=#{e1} e2=#{e2} diff_days=#{(e2-e1).to_f} msd=#{m1.msd}"
 
 m = MarsDateTime.new(1067,1,1,12,34,45)
 e = m.earth_date
 m2 = MarsDateTime.new(e)
 puts "m=#{m.inspect} m2=#{m2.inspect} diff_sols=#{m2-m}"
-puts "mems=#{m.mems} mems%1000=#{m.mems % 1000}"
+puts "msd=#{m.msd}"
 puts "earth=#{e} earth h:m:s=#{e.hour}:#{e.min}:#{e.sec}"
 
-section "mems fractional seconds discarded"
-orig = 1234567890123
-m = MarsDateTime.new(orig)
-puts "orig=#{orig} stored=#{m.mems} diff=#{orig - m.mems}"
+section "numeric constructor is MSD"
+m = MarsDateTime.new(54252.04608352365)
+puts "from MSD 54252.046... => #{m.inspect}"
 
 section "JSON roundtrip"
 m = MarsDateTime.new(1043,2,15,12,34,45)
 json = m.to_json
 m2 = MarsDateTime.from_json(json)
 puts "json=#{json}"
-puts "orig inspect=#{m.inspect} mems=#{m.mems}"
-puts "restored inspect=#{m2.inspect} mems=#{m2.mems}"
+puts "orig inspect=#{m.inspect} msd=#{m.msd}"
+puts "restored inspect=#{m2.inspect} msd=#{m2.msd}"
 puts "year=#{m2.year} month=#{m2.month} +"
 show("restored + 1") { (m2 + 1).inspect }
 
@@ -137,23 +128,11 @@ m = MarsDateTime.new(1,1,1)
 puts "actual ivars: #{m.instance_variables}"
 puts "to_yaml_properties: #{m.to_yaml_properties}"
 
-section "Stretched rounding at end of sol"
+section "MXT / MTC at end of sol"
 m = MarsDateTime.new(1,1,1,24,39,35)
-puts "canonical 24:39:35 stretched=#{m.shr}:#{m.smin}:#{m.ssec}"
+puts "MXT 24:39:35 => MXT #{m.format_mxt} MTC #{m.format_mtc}"
 m0 = MarsDateTime.new(1,1,1,0,0,0)
-puts "midnight stretched=#{m0.shr}:#{m0.smin}:#{m0.ssec}"
-(0..59).each do |sec|
-  md = MarsDateTime.new(1,1,1,11,30,sec)
-  if md.ssec == 60
-    puts "ROUND TO 60: canonical 11:30:#{sec} -> #{md.shr}:#{md.smin}:#{md.ssec}"
-  end
-end
-(0..39).each do |min|
-  md = MarsDateTime.new(1,1,1,24,min,0)
-  if md.ssec == 60 || md.smin == 60
-    puts "ROUND 60 at 24:#{min}:00 -> #{md.shr}:#{md.smin}:#{md.ssec}"
-  end
-end
+puts "midnight => MXT #{m0.format_mxt} MTC #{m0.format_mtc}"
 
 section "Date vs DateTime constructor"
 d = Date.new(2000,1,1)
@@ -167,8 +146,9 @@ show("compare Date") { MarsDateTime.new(dt) <=> d }
 section "Negative / pre-epoch"
 show("year 0") { MarsDateTime.new(0,1,1).inspect }
 show("year -1") { MarsDateTime.new(-1,1,1).inspect }
-show("mems -1") { MarsDateTime.new(-1).inspect }
-show("mems 0") { MarsDateTime.new(0).inspect }
+show("MSD -1") { MarsDateTime.new(-1).inspect }
+show("MSD 0") { MarsDateTime.new(0).inspect }
+show("MSD before epoch") { MarsDateTime.new(MarsDateTime::EPOCH_MSD - 1).inspect }
 
 section "Addition across year boundary / leap"
 m = MarsDateTime.new(1066,24,24) # last sol of non-leap
@@ -178,16 +158,14 @@ puts "1067/24/25 + 1 = #{(m+1).inspect}"
 m = MarsDateTime.new(1067,24,24)
 puts "1067/24/24 + 1 = #{(m+1).inspect}"
 
-section "earth_date integer division"
+section "earth_date of 1 MXT second"
 m = MarsDateTime.new(1,1,1,0,0,1)
-puts "1 second mars: mems=#{m.mems} earth=#{m.earth_date}"
-m = MarsDateTime.new(500)
-puts "500 ms: inspect=#{m.inspect} mems=#{m.mems} earth=#{m.earth_date}"
+puts "1 second MXT: msd=#{m.msd} earth=#{m.earth_date}"
 
 section "strftime %s, comments, trailing percent"
 m = MarsDateTime.new(1,1,1,12,34,45)
-puts "%H=#{m.strftime('%H')} (mhrs=#{m.mhrs}) %P=#{m.strftime('%P')} (shr=#{m.shr})"
-puts "%s=#{m.strftime('%s')} msec=#{m.msec}"
+puts "%H=#{m.strftime('%H')} (MTC) %P=#{m.strftime('%P')} (MXT)"
+puts "%s=#{m.strftime('%s')}"
 puts "%I unimplemented: #{m.strftime('%I')}"
 m = MarsDateTime.new(1,1,1)
 puts "strftime end percent: [#{m.strftime("foo%")}]"

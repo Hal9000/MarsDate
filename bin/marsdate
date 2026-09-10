@@ -63,7 +63,7 @@ end
 
 def m2e(ymd, hms)
   yyyy, mm, dd, hh, mi, ss = *get_data(ymd, hms)
-  mdate = MarsDateTime.new(yyyy,mm,dd)
+  mdate = MarsDateTime.new(yyyy, mm, dd, hh, mi, ss) # MXT
   date = mdate.earth_date
   puts date.strftime("%x %X")
 end

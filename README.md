@@ -5,23 +5,16 @@
 This library is based on the Martian Common Era calendar created by Hal Fulton.
 Its functionality closely follows that of Ruby's Time class.
 
-**Code vs intended clock.** The implementation still treats Earth
-`0001-01-22 00:00:00` UTC as Mars 1/1/1 00:00. That is not Coordinated
-Mars Time. A rewrite is planned; agreed rules are in
-[`design-issues.md`](design-issues.md) (findings in
-[`ai-notes.txt`](ai-notes.txt)). In short: 00:00 will be Airy-0 mean
-midnight (**MTC**); **MXT** is the same instant in SI hours (day to
-~24:39); 1/1/1 is the sol that contains the year-1 northern vernal
-equinox; Earth ymdhms of that midnight is a published counterpart, not
-the converter’s input.
+**Clock (2.0).** `MarsDateTime` stores one MSD. 00:00 is Airy-0 mean
+midnight (**MTC**). **MXT** is the same instant in SI hours (day to
+~24:39); civil `new(y,m,s,h,min,sec)` is MXT unless `clock: :mtc`.
+1/1/1 is the sol that contains the year-1 northern vernal equinox
+(`EPOCH_MSD = −665773`). Earth time of that midnight is a caption
+(about 0001-01-23 13:40 if TT is read as UT), not the converter’s
+input. Design: [`design-issues.md`](design-issues.md).
 
-`MarsDateTime::TimeScale` (`lib/marsdate/timescale.rb`) computes
-MSD/MTC/MXT from an Earth `DateTime`. `MarsDateTime::Calendar`
-(`lib/marsdate/calendar.rb`) maps MCE year/month/sol onto
-`floor(MSD) − EPOCH_MSD` (`EPOCH_MSD = −665773`). Neither is used
-by `MarsDateTime` constructors yet. Tests are Minitest (`Minitest::Test`,
-not spec): `ruby test/timescale_test.rb`, `ruby test/calendar_test.rb`,
-`ruby test/test.rb`.
+Tests (Minitest): `ruby test/timescale_test.rb`,
+`ruby test/calendar_test.rb`, `ruby test/test.rb`.
 
 ## Methods... (FIXME later)
 
@@ -39,18 +32,22 @@ short?
 long?
 month_name
 
-initialize(params)
-  3-6: y m d h m s
+initialize(params, clock: :mxt)
+  3-6: y m sol [h min sec]  (HMS is MXT unless clock: :mtc)
     0: (now)
-    1: msec or Date or DateTime
+    1: MSD or Date or DateTime
 
--(other)    # MarsDateTime, DateTime, Integer, Float
+from_msd(msd)
+format_mtc / format_mxt
+
+-(other)    # MarsDateTime, Date, DateTime, Integer, Float
 +(sols)
-<=>(other)  # MarsDateTime or DateTime
+<=>(other)  # MarsDateTime, Date, or DateTime
 
 earth_date
 
-strftime(fmt)   # Specifiers are as follows:
+strftime(fmt)   # Temporary: %H/%M/%S = MTC, %P/%Q/%R = MXT
+                # Specifiers are as follows:
 
   %a  @day_of_week[0..2]
   %A  @day_of_week
@@ -63,8 +60,8 @@ strftime(fmt)   # Specifiers are as follows:
   %j  @year_sol.to_s
   %m  zmonth  # @month.to\_s
   %M  zmm
-  %s  @msec.to_s  # was: (@mems\*1000).to_i.to_s
-  %S  zss
+  %s  mtc_sec (integer)
+  %S  zss   # MTC seconds
   %u  (@dow + 1).to_s
   %U  (@year_sol/7 + 1).to_s
   %w  @dow.to_s
@@ -74,9 +71,9 @@ strftime(fmt)   # Specifiers are as follows:
   %n  "\n"
   %t  "\t"
   %%  "%"
-  %P  ("%02d" % @shr)
-  %Q  ("%02d" % @smin)
-  %R  ("%02d" % @ssec)
+  %P  mxt_hour
+  %Q  mxt_min
+  %R  mxt_sec
 </pre>
 
 

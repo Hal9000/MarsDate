@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
-# Legacy MarsDateTime constructor tests (old Earth-midnight epoch).
+# MarsDateTime constructors on the official MSD timeline.
 # Run: ruby test/test.rb
-#
-# These lock current constructor behavior, not TimeScale/Calendar.
 
 require 'minitest/autorun'
 require_relative '../lib/marsdate'
@@ -18,31 +16,36 @@ class MarsDateTest < Minitest::Test
 
   def test_year1_sol1_is_sunday
     assert_equal 0, MarsDateTime.new(1, 1, 1).dow
+    assert_equal 'Sunday', MarsDateTime.new(1, 1, 1).day_of_week
   end
 
-  def test_earth_jan_22_year1_is_mars_new_year
-    md = MarsDateTime.new(DateTime.new(1, 1, 22))
-    assert_equal [1, 1, 1], md.ymshms[0..2]
-    assert_equal 'Sunday', md.day_of_week
+  def test_epoch_msd
+    m = MarsDateTime.new(1, 1, 1)
+    assert_equal MarsDateTime::EPOCH_MSD, m.msd
+    assert_equal 1, m.epoch_sol
   end
 
-  def test_earth_1961_may_weekdays
-    assert_equal 'Thursday', MarsDateTime.new(DateTime.new(1961, 5, 23)).day_of_week
-    assert_equal 'Friday', MarsDateTime.new(DateTime.new(1961, 5, 24)).day_of_week
-  end
-
-  def test_accessors_ymshms
+  def test_accessors_ymshms_mxt
     m = MarsDateTime.new(1043, 2, 15, 12, 34, 45)
     assert_equal 1043, m.myear
     assert_equal 2, m.month
     assert_equal 15, m.sol
-    assert_equal 12, m.hr
-    assert_equal 34, m.min
-    assert_equal 45, m.sec
+    assert_equal 12, m.mxt_hour
+    assert_equal 34, m.mxt_min
+    assert_in_delta 45.0, m.mxt_sec, 0.001
     assert_equal 4, m.dow
     assert_equal 'Thursday', m.day_of_week
     assert_equal 43, m.year_sol
     assert_equal 696715, m.epoch_sol
+    assert_equal [1043, 2, 15, 12, 34, 45], m.ymshms
+  end
+
+  def test_mtc_constructor
+    m = MarsDateTime.new(1, 1, 1, 15, 46, 58, clock: :mtc)
+    assert_equal 15, m.mtc_hour
+    assert_equal 46, m.mtc_min
+    assert_in_delta 58.0, m.mtc_sec, 0.5
+    assert_equal [1, 1, 1], [m.year, m.month, m.sol]
   end
 
   def test_accessors_933
@@ -56,10 +59,40 @@ class MarsDateTest < Minitest::Test
     assert MarsDateTime.leap?(1067)
     MarsDateTime.new(1067, 24, 25)
     refute MarsDateTime.leap?(1066)
-    assert_raises(RuntimeError) { MarsDateTime.new(1066, 24, 25) }
+    assert_raises(ArgumentError) { MarsDateTime.new(1066, 24, 25) }
   end
 
-  def test_equinoxes_near_mce_new_year
+  def test_reject_invalid_clocks
+    assert_raises(ArgumentError) { MarsDateTime.new(1, 1, 1, 24, 40, 0) }
+    assert_raises(ArgumentError) { MarsDateTime.new(1, 1, 1, 24, 0, 0, clock: :mtc) }
+    assert_raises(ArgumentError) { MarsDateTime.new(1, 1, 1, 25, 0, 0) }
+    MarsDateTime.new(1, 1, 1, 24, 39, 35) # last MXT second, ok
+  end
+
+  def test_earth_before_epoch_rejected
+    assert_raises(ArgumentError) { MarsDateTime.new(DateTime.new(1, 1, 22)) }
+  end
+
+  def test_official_mtc_examples
+    m = MarsDateTime.new(DateTime.new(2000, 1, 6, 0, 0, 0))
+    assert_equal [1063, 19, 21], [m.year, m.month, m.sol]
+    assert_equal 23, m.mtc_hour
+    assert_equal 59, m.mtc_min
+    assert_in_delta 39.3, m.mtc_sec, 1.0
+
+    m = MarsDateTime.new(DateTime.new(2026, 8, 13, 0, 6, 56))
+    assert_equal [1077, 23, 6], [m.year, m.month, m.sol]
+    assert_in_delta 1.0, m.mtc_hour + m.mtc_min / 60.0 + m.mtc_sec / 3600.0,
+                   2.0 / 3600.0
+  end
+
+  def test_offset_independent
+    utc = DateTime.new(2000, 1, 1, 12, 0, 0)
+    est = utc.new_offset(Rational(-5, 24))
+    assert_in_delta MarsDateTime.new(utc).msd, MarsDateTime.new(est).msd, 1e-12
+  end
+
+  def test_equinoxes_near_following_new_year
     m = MarsDateTime.new(DateTime.new(2007, 12, 9, 17, 20, 0))
     assert_in_delta 0, MarsDateTime.new(1068, 1, 1) - m, 1.5
 
@@ -70,7 +103,7 @@ class MarsDateTest < Minitest::Test
     assert_in_delta 0, MarsDateTime.new(1012, 1, 1) - m, 1.5
   end
 
-  def test_default_constructor_is_today
+  def test_default_constructor_is_now
     assert_in_delta 0, DateTime.now - MarsDateTime.new.earth_date, 1.0
   end
 
@@ -82,36 +115,36 @@ class MarsDateTest < Minitest::Test
     e = MarsDateTime.new(1, 1, 1).earth_date
     assert_equal 1, e.year
     assert_equal 1, e.month
-    assert_in_delta 22, e.day, 1
+    assert_in_delta 23, e.day, 1
   end
 
-  def test_earth_datetime_converts_within_a_day
+  def test_earth_datetime_round_trip
     e = DateTime.new(1902, 8, 12, 7, 0, 0)
-    assert_in_delta 0, MarsDateTime.new(e).earth_date - e, 1.0
+    assert_in_delta 0, MarsDateTime.new(e).earth_date - e, 1.0 / 86400.0
   end
 
   def test_earth_round_trip
     e1 = DateTime.new(1961, 5, 31)
     e2 = MarsDateTime.new(e1).earth_date
-    assert_in_delta 0, e2 - e1, 0.01
+    assert_in_delta 0, e2 - e1, 1.0 / 86400.0
   end
 
   def test_mars_round_trip
     m1 = MarsDateTime.new(1067, 1, 1)
     m2 = MarsDateTime.new(m1.earth_date)
-    assert_in_delta 0, m2 - m1, 0.01
+    assert_in_delta 0, m2 - m1, 1e-8
   end
 
   def test_earth_round_trip_with_hms
     e1 = DateTime.new(1976, 7, 4, 16, 30, 0)
     30.times do
       e2 = MarsDateTime.new(e1).earth_date
-      assert_in_delta 0, e2 - e1, 0.01
+      assert_in_delta 0, e2 - e1, 1.0 / 86400.0
       e1 += 1
     end
   end
 
-  def test_strftime
+  def test_strftime_dates
     m1 = MarsDateTime.new(1069, 15, 24)
     m2 = MarsDateTime.new(933, 6, 4)
     m3 = MarsDateTime.new(1055, 14, 1)
@@ -155,6 +188,13 @@ class MarsDateTest < Minitest::Test
     assert_equal 'Sagittarius', m3.strftime('%B')
   end
 
+  def test_strftime_clocks_at_midnight
+    m = MarsDateTime.new(1, 1, 1)
+    assert_equal '00', m.strftime('%H')
+    assert_equal '00', m.strftime('%P')
+    assert_equal '00:00:00', m.strftime('%X')
+  end
+
   def test_comparisons
     m1 = MarsDateTime.new(1068, 14, 22)
     m2 = MarsDateTime.new(1068, 14, 21)
@@ -178,8 +218,8 @@ class MarsDateTest < Minitest::Test
     m = MarsDateTime.new(DateTime.new(1961, 5, 31))
     assert_equal 1043, m.year
     assert_equal 7, m.month
-    assert_equal 9, m.sol
-    assert_equal 'Friday', m.day_of_week
+    assert_equal 8, m.sol
+    assert_equal 'Thursday', m.day_of_week
   end
 
   def test_martian_april_1_1043_is_thursday
@@ -193,13 +233,45 @@ class MarsDateTest < Minitest::Test
     assert_equal m.day_of_week, (m + 21).day_of_week
   end
 
+  def test_addition_rolls_year
+    assert_equal [1067, 1, 1], (MarsDateTime.new(1066, 24, 24) + 1).ymshms[0..2]
+    assert_equal [1068, 1, 1], (MarsDateTime.new(1067, 24, 25) + 1).ymshms[0..2]
+  end
+
   def test_subtraction
     md = MarsDateTime.new(1062, 20, 20)
     m2 = MarsDateTime.new(1062, 20, 17)
-    assert_in_delta 3.0, md - m2, 0.01
-    e = DateTime.new(1998, 3, 12, 16, 45, 0)
-    assert_in_delta 3.0, md - e, 0.01
-    assert_in_delta 0, (md - 3) - m2, 0.01
-    assert_in_delta 0, (md - 3.0) - m2, 0.01
+    assert_in_delta 3.0, md - m2, 1e-9
+    assert_in_delta 0, (md - 3) - m2, 1e-9
+    assert_in_delta 0, (md - 3.0) - m2, 1e-9
+    e = m2.earth_date
+    assert_in_delta 3.0, md - e, 1e-8
+    d = Date.new(2000, 1, 1)
+    dt = DateTime.new(2000, 1, 1, 12, 0, 0)
+    assert MarsDateTime.new(dt) - d > 0
+    assert_equal 1, MarsDateTime.new(dt) <=> d
+  end
+
+  def test_from_msd_and_json
+    m = MarsDateTime.new(1043, 2, 15, 12, 34, 45)
+    m2 = MarsDateTime.from_msd(m.msd)
+    assert_in_delta 0, m2 - m, 0
+    m3 = MarsDateTime.from_json(m.to_json)
+    assert_in_delta 0, m3 - m, 0
+    assert_equal m.msd, MarsDateTime.new(m.msd).msd
+  end
+
+  def test_to_s_labels_both_clocks
+    s = MarsDateTime.new(1, 1, 1).to_s
+    assert_includes s, 'MXT'
+    assert_includes s, 'MTC'
+    refute_match(/\bhr\b/, s)
+  end
+
+  def test_no_unmarked_clock_accessors
+    m = MarsDateTime.new(1, 1, 1)
+    refute m.respond_to?(:hr)
+    refute m.respond_to?(:min)
+    refute m.respond_to?(:sec)
   end
 end
