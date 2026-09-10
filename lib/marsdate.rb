@@ -1,5 +1,6 @@
 require 'date'
 require 'json'
+require_relative 'marsdate/timescale'
 
 class MarsDateTime
 
