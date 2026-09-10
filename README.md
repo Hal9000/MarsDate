@@ -9,7 +9,8 @@ Its functionality closely follows that of Ruby's Time class.
 midnight (**MTC**). **MXT** is the same instant in SI hours (day to
 ~24:39). Civil constructors: `mxt(...)` / `new(y,m,sol,h,min,sec)`
 (MXT), `mtc(...)`, `at(msd)`. Views: `md.mxt` / `md.mtc`. `format(fmt)` is date + MXT;
-`format_mtc(fmt)` / `md.mtc.format` for MTC. No `strftime`.
+`format_mtc(fmt)` / `md.mtc.format` for MTC. `%Z` is the clock
+name (MXT or MTC), not a timezone. No `strftime`.
 1/1/1 is the sol that contains the year-1 northern vernal equinox
 (`EPOCH_MSD = −665773`). Earth time of that midnight is a caption
 (~0001-01-23 13:40, treating TT as UT), not the converter’s input.
@@ -80,6 +81,7 @@ format(fmt)     # Specifiers (inspired by Time#strftime):
   %x  "#@year/#{zmonth}/#{zsol}"
   %X  "#{zhh}:#{zmm}:#{zss}"
   %Y  @year.to_s
+  %Z  clock name (MXT or MTC), not a timezone
   %n  "\n"
   %t  "\t"
   %%  "%"
