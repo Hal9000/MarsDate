@@ -40,12 +40,45 @@ class MarsDateTest < Minitest::Test
     assert_equal [1043, 2, 15, 12, 34, 45], m.ymshms
   end
 
-  def test_mtc_constructor
-    m = MarsDateTime.new(1, 1, 1, 15, 46, 58, clock: :mtc)
-    assert_equal 15, m.mtc_hour
-    assert_equal 46, m.mtc_min
-    assert_in_delta 58.0, m.mtc_sec, 0.5
+  def test_named_constructors
+    a = MarsDateTime.new(1043, 2, 15, 12, 34, 45)
+    b = MarsDateTime.mxt(1043, 2, 15, 12, 34, 45)
+    assert_in_delta 0, a - b, 0
+    assert_equal a.msd, MarsDateTime.at(a.msd).msd
+    assert_equal a.msd, MarsDateTime.from_msd(a.msd).msd
+
+    m = MarsDateTime.mtc(1, 1, 1, 15, 46, 58)
+    assert_equal 15, m.mtc.hour
+    assert_equal 46, m.mtc.min
+    assert_in_delta 58.0, m.mtc.sec, 0.5
     assert_equal [1, 1, 1], [m.year, m.month, m.sol]
+  end
+
+  def test_mxt_and_mtc_midnight_are_the_same_instant
+    a = MarsDateTime.mxt(1077, 23, 6)
+    b = MarsDateTime.mtc(1077, 23, 6)
+    assert_in_delta 0, a - b, 0
+    assert_equal 0, a.mxt.hour
+    assert_equal 0, a.mtc.hour
+  end
+
+  def test_clock_views
+    m = MarsDateTime.mxt(1, 1, 1, 13, 0, 0)
+    assert_equal 13, m.mxt.hour
+    assert_equal 0, m.mxt.min
+    assert_in_delta 0.0, m.mxt.sec, 0.001
+    assert_equal :mxt, m.mxt.scale
+    assert_equal :mtc, m.mtc.scale
+    assert_equal m.format_mxt, m.mxt.to_s
+    assert_equal m.format_mtc, m.mtc.to_s
+    assert_equal '13', m.mxt.strftime('%H')
+    assert_equal '12', m.mtc.strftime('%H')
+  end
+
+  def test_at_rolls_into_next_sol
+    midnight = MarsDateTime.mxt(1, 1, 1)
+    nxt = MarsDateTime.at(midnight.msd + 1)
+    assert_equal [1, 1, 2], [nxt.year, nxt.month, nxt.sol]
   end
 
   def test_accessors_933
@@ -64,7 +97,7 @@ class MarsDateTest < Minitest::Test
 
   def test_reject_invalid_clocks
     assert_raises(ArgumentError) { MarsDateTime.new(1, 1, 1, 24, 40, 0) }
-    assert_raises(ArgumentError) { MarsDateTime.new(1, 1, 1, 24, 0, 0, clock: :mtc) }
+    assert_raises(ArgumentError) { MarsDateTime.mtc(1, 1, 1, 24, 0, 0) }
     assert_raises(ArgumentError) { MarsDateTime.new(1, 1, 1, 25, 0, 0) }
     MarsDateTime.new(1, 1, 1, 24, 39, 35) # last MXT second, ok
   end
@@ -273,5 +306,6 @@ class MarsDateTest < Minitest::Test
     refute m.respond_to?(:hr)
     refute m.respond_to?(:min)
     refute m.respond_to?(:sec)
+    assert_raises(ArgumentError) { MarsDateTime.new(1, 1, 1, 0, 0, 0, clock: :mtc) }
   end
 end

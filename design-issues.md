@@ -12,8 +12,9 @@ Status key: **must decide** · **decide soon** · **can wait** · **no design ne
 ## Established decisions
 
 These are agreed. `MarsDateTime` 2.0 stores MSD and implements
-them (formatter shape still temporary: `format_mtc` / `format_mxt`,
-`strftime` `%H` = MTC, `%P` = MXT).
+them. Constructors: `mxt` / `mtc` / `at` / `new` (MXT civil).
+Views: `md.mxt` / `md.mtc` (`strftime` `%H` is that clock).
+Unmarked `strftime` `%H` is still MTC; `%P` is MXT.
 
 **Midnight and epoch**
 

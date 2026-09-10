@@ -7,7 +7,8 @@ Its functionality closely follows that of Ruby's Time class.
 
 **Clock (2.0).** `MarsDateTime` stores one MSD. 00:00 is Airy-0 mean
 midnight (**MTC**). **MXT** is the same instant in SI hours (day to
-~24:39); civil `new(y,m,s,h,min,sec)` is MXT unless `clock: :mtc`.
+~24:39). Civil constructors: `mxt(...)` / `new(y,m,sol,h,min,sec)`
+(MXT), `mtc(...)`, `at(msd)`. Views: `md.mxt` / `md.mtc`.
 1/1/1 is the sol that contains the year-1 northern vernal equinox
 (`EPOCH_MSD = −665773`). Earth time of that midnight is a caption
 (about 0001-01-23 13:40 if TT is read as UT), not the converter’s
@@ -32,12 +33,15 @@ short?
 long?
 month_name
 
-initialize(params, clock: :mxt)
-  3-6: y m sol [h min sec]  (HMS is MXT unless clock: :mtc)
+initialize(params)
+  3-6: y m sol [h min sec]   # HMS is MXT
     0: (now)
     1: MSD or Date or DateTime
 
-from_msd(msd)
+self.mxt(y, m, sol, h=0, min=0, sec=0)
+self.mtc(y, m, sol, h=0, min=0, sec=0)
+self.at(msd)            # from_msd is an alias
+md.mxt / md.mtc         # views: hour, min, sec, to_s, strftime
 format_mtc / format_mxt
 
 -(other)    # MarsDateTime, Date, DateTime, Integer, Float
