@@ -63,16 +63,16 @@ class MarsDateTest < Minitest::Test
   end
 
   def test_clock_views
-    m = MarsDateTime.mxt(1, 1, 1, 12, 34, 45)
-    assert_equal 12, m.mxt.hour
-    assert_equal 34, m.mxt.min
-    assert_in_delta 45.0, m.mxt.sec, 0.001
+    m = MarsDateTime.mxt(1, 1, 1, 13, 0, 0)
+    assert_equal 13, m.mxt.hour
+    assert_equal 0, m.mxt.min
+    assert_in_delta 0.0, m.mxt.sec, 0.001
     assert_equal :mxt, m.mxt.scale
     assert_equal :mtc, m.mtc.scale
     assert_equal m.format_mxt, m.mxt.to_s
     assert_equal m.format_mtc, m.mtc.to_s
-    assert_equal m.mxt.strftime('%H'), '%02d' % m.mxt.hour
-    refute_equal m.mxt.strftime('%H'), m.mtc.strftime('%H')
+    assert_equal '13', m.mxt.strftime('%H')
+    assert_equal '12', m.mtc.strftime('%H')
   end
 
   def test_at_rolls_into_next_sol
