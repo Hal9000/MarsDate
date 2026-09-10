@@ -8,8 +8,8 @@ def usage
 
     marsdate                # usage (this message)
     marsdate version        # current version number
-    marsdate today          # today's Martian date
-    marsdate now            # today's Martian date/time
+    marsdate today          # current Martian sol at 00:00
+    marsdate now            # current instant
 
     marsdate calendar yyyy  # Martian calendar for yyyy (HTML)
     marsdate calendar       # this year's Martian calendar (HTML)

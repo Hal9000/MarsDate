@@ -11,8 +11,13 @@ midnight (**MTC**). **MXT** is the same instant in SI hours (day to
 (MXT), `mtc(...)`, `at(msd)`. Views: `md.mxt` / `md.mtc`.
 1/1/1 is the sol that contains the year-1 northern vernal equinox
 (`EPOCH_MSD = −665773`). Earth time of that midnight is a caption
-(about 0001-01-23 13:40 if TT is read as UT), not the converter’s
-input. Design: [`design-issues.md`](design-issues.md).
+(~0001-01-23 13:40, treating TT as UT), not the converter’s input.
+Allison’s Ls series is fitted ~1874–2127; year 1 is an extrapolation.
+A historical ΔT at 1 CE is a few hours and would only slide the
+caption, so we do not model it. `MarsDateTime.today` is the current
+MCE sol at 00:00; `now` is the current instant.
+`MarsDateTime.epoch_caption` returns the year-1 numbers and caveat.
+Design: [`design-issues.md`](design-issues.md).
 
 Tests (Minitest): `ruby test/timescale_test.rb`,
 `ruby test/calendar_test.rb`, `ruby test/test.rb`.
@@ -25,8 +30,9 @@ self.leap?(myear)  # class method for convenience
 self.short?(myear) # short year
 self.long?(myear)  # long year
 self.sols_in_month(m, year)
-self.now
-self.today
+self.now              # current instant
+self.today            # current MCE sol at 00:00
+self.epoch_caption    # year-1 Earth captions (TT as UT)
 
 leap?
 short?

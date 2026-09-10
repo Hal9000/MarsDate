@@ -77,6 +77,24 @@ class TimeScaleTest < Minitest::Test
     assert_in_delta 0, (back - dt).to_f, 1e-8
   end
 
+  def test_year1_caption_treats_tt_as_ut
+    r = TS.epoch_report
+    assert_match(/no year-1/, r[:caveat])
+    assert_equal(-665773, r[:epoch_msd])
+    cap = r[:epoch_earth_if_tt_were_ut]
+    assert_equal 1, cap.year
+    assert_equal 1, cap.month
+    assert_equal 23, cap.day
+    assert_equal 13, cap.hour
+    assert_equal 40, cap.min
+    eq = r[:ls0_earth_if_tt_were_ut]
+    assert_equal 1, eq.year
+    assert_equal 1, eq.month
+    assert_equal 24, eq.day
+    assert_equal 5, eq.hour
+    assert_equal 53, eq.min
+  end
+
   def test_year1_equinox_sol
     hint = DateTime.new(1, 1, 22, 12, 0, 0)
     eq = TS.vernal_equinox_jd_tt(hint.ajd.to_f)

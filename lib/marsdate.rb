@@ -109,8 +109,16 @@ class MarsDateTime
     new(DateTime.now)
   end
 
+  # Current MCE sol at 00:00 (MXT = MTC midnight). Not Earth Date.today.
   def self.today
-    new(Date.today)
+    n = now
+    mxt(n.year, n.month, n.sol)
+  end
+
+  # Earth caption of 1/1/1 00:00 and of Ls=0 on that sol.
+  # Times treat JD_TT as UT (no year-1 ΔT). See TimeScale.epoch_report.
+  def self.epoch_caption
+    TimeScale.epoch_report
   end
 
   def self.from_json(str)

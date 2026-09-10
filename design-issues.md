@@ -14,7 +14,9 @@ Status key: **must decide** · **decide soon** · **can wait** · **no design ne
 These are agreed. `MarsDateTime` 2.0 stores MSD and implements
 them. Constructors: `mxt` / `mtc` / `at` / `new` (MXT civil).
 Views: `md.mxt` / `md.mtc` (`strftime` `%H` is that clock).
-Unmarked `strftime` `%H` is still MTC; `%P` is MXT.
+Unmarked `strftime` `%H` is still MTC; `%P` is MXT. Formatter
+rename (`format` / `format_mxt` / `format_mtc`) is a lean, not
+coded — see below.
 
 **Midnight and epoch**
 
@@ -32,6 +34,13 @@ Unmarked `strftime` `%H` is still MTC; `%P` is MXT.
   **caption**, like “Unix epoch = 1970-01-01 00:00:00 UTC.” Also
   publish Earth time of `Ls=0` on that sol (hours later). Neither
   Earth datetime is an input to the converter.
+- **Year-1 ΔT: do not model it.** Before 1900, TT−UT = 0 (civil
+  digits are TT). Captions today: 1/1/1 00:00 ≈ **0001-01-23
+  13:40**, `Ls=0` ≈ **0001-01-24 05:53** (Julian, TT as UT).
+  `MarsDateTime.epoch_caption` / `TimeScale.epoch_report`. A real
+  1 CE ΔT is a few hours and would only slide these strings.
+  Allison Ls is already out of sample (~1874–2127). `EPOCH_MSD`
+  does not depend on ΔT.
 
 **Clocks (one timeline)**
 
@@ -61,6 +70,9 @@ Unmarked `strftime` `%H` is still MTC; `%P` is MXT.
   survives. Leap rules stay MCE for now (`/100` except `/1000`).
 - MCE names the sol and prefers MXT on that sol. MTC is the
   imported standard view of the same instant.
+- **`today`** is the current MCE sol at 00:00 (`mxt(now.year,
+  now.month, now.sol)`). **`now`** is the current instant.
+  `today` is not Earth `Date.today` at 00:00.
 
 **API / compatibility**
 
@@ -108,9 +120,29 @@ Year-1 `Ls=0` from the same Allison series (out of sample; fitted
 
 - Earth `DateTime` with a non-zero offset: honor the instant, or
   treat the digits as UTC? (parked)
-- Formatter / constructor `clock:` shape (deferred)
-- Leap `/500`, Darian, longitude/LMST, `today` vs `now`, CLI nits
-  (deferred)
+- Formatter rename (lean below; not coded). No `clock:` keyword.
+- Leap `/500`, Darian, longitude/LMST (deferred)
+
+**Formatter lean (not coded)**
+
+`strftime` only approximates Ruby `Time#strftime` (`%P`/`%Q`/`%R`
+are ours; `%s` is not Unix; unknown tokens pass through). Keep the
+specifier table; drop the antique name as the primary API.
+
+```
+md.format(fmt)            # date tokens + MXT for %H/%M/%S/%X
+md.format_mxt(fmt = nil)  # nil → HMS (what format_mxt is now)
+md.format_mtc(fmt = nil)  # nil → HMS
+md.mxt.format(fmt = nil)  # %H is this clock
+md.mtc.format(fmt = nil)
+md.strftime               # alias of format (parent and views)
+```
+
+Parent `format` uses **MXT** so it matches `new(y,m,sol,h)` (civil).
+MTC is by name: `format_mtc` / `md.mtc`. No `clock:` keyword.
+Invented `%P`/`%Q`/`%R` can die once views exist; until then they
+stay as “the other clock.” `to_s` stays the labeled prose sentence.
+Do not implement until this lean is accepted.
 
 
 ## Must decide before a real fix
@@ -191,10 +223,9 @@ is acceptable (not a serious compatibility concern).
 Leaning: mark both. Accessors like `mtc_hour` / `mxt_hour`.
 `to_s` prints both, labeled.
 
-`strftime` is a C/Ruby Time leftover; `%H` is unmarked. Options
-(see discussion): two methods (`format_mtc` / `format_mxt`);
-one method plus `clock:`; clock-view objects (`md.mtc.strftime`);
-or drop format strings and return HMS / ISO-like strings.
+`strftime` is a C/Ruby Time leftover; `%H` is unmarked. Current
+code: parent `%H` = MTC, `%P` = MXT; views scope `%H`. Proposed
+rename is in **Formatter lean** above (not coded).
 
 Arithmetic in seconds should stay SI (or sols), not “stretched
 seconds.” Round-trip each display through the store without going
@@ -237,9 +268,9 @@ ambiguous until MCE sol boundaries match Airy-0 midnight. MSD/MTC
 
 ### 11. Later API
 
-Longitude / LMST (`MTC − λ/15°`). What `today` vs `now` means.
-YAML ivar names, `strftime` nits (`%s`, trailing `%`). CLI (`m2e`
-drops time; `calendar yyyy` ignores the year).
+Longitude / LMST (`MTC − λ/15°`). YAML ivar names. `strftime` nits
+(`%s`, trailing `%`) until the formatter rename. CLI calendar year
+and `m2e` time are done.
 
 
 ## No design needed (ordinary bugs)

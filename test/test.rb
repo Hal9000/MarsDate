@@ -140,8 +140,18 @@ class MarsDateTest < Minitest::Test
     assert_in_delta 0, DateTime.now - MarsDateTime.new.earth_date, 1.0
   end
 
-  def test_now_and_today_within_a_day
-    assert_operator MarsDateTime.now - MarsDateTime.today, :<, 1.0
+  def test_today_is_current_mars_midnight
+    n = MarsDateTime.now
+    t = MarsDateTime.today
+    assert_equal n.year, t.year
+    assert_equal n.month, t.month
+    assert_equal n.sol, t.sol
+    assert_equal 0, t.mxt_hour
+    assert_equal 0, t.mxt_min
+    assert_in_delta 0.0, t.mxt_sec, 1e-9
+    assert_in_delta 0.0, t.mtc_hour, 1e-9
+    assert_operator n.msd - t.msd, :>=, 0
+    assert_operator n.msd - t.msd, :<, 1.0
   end
 
   def test_earth_date_of_mars_epoch
@@ -149,6 +159,10 @@ class MarsDateTest < Minitest::Test
     assert_equal 1, e.year
     assert_equal 1, e.month
     assert_in_delta 23, e.day, 1
+    cap = MarsDateTime.epoch_caption
+    assert_equal e.year, cap[:epoch_earth_if_tt_were_ut].year
+    assert_equal e.day, cap[:epoch_earth_if_tt_were_ut].day
+    assert_match(/TT as UT/, cap[:caveat])
   end
 
   def test_earth_datetime_round_trip
