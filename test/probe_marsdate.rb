@@ -25,9 +25,7 @@ puts "1/1/1: #{MarsDateTime.new(1,1,1).inspect}"
 puts "1/1/1 earth_date: #{MarsDateTime.new(1,1,1).earth_date}"
 
 section "Earth Jan 22 year 1 -> Mars"
-m = MarsDateTime.new(DateTime.new(1,1,22))
-puts m.inspect
-puts m.ymshms.inspect
+show("0001-01-22 (before epoch)") { MarsDateTime.new(DateTime.new(1,1,22)).inspect }
 
 section "README claimed dates"
 [
