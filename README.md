@@ -15,6 +15,10 @@ midnight (**MTC**); **MXT** is the same instant in SI hours (day to
 equinox; Earth ymdhms of that midnight is a published counterpart, not
 the converter’s input.
 
+`MarsDateTime::TimeScale` (`lib/marsdate/timescale.rb`) computes
+MSD/MTC/MXT from an Earth `DateTime` (not yet used by `MarsDateTime`
+constructors). Tests: `ruby test/timescale_test.rb`.
+
 ## Methods... (FIXME later)
 
 
