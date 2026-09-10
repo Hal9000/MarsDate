@@ -123,7 +123,9 @@ Year-1 `Ls=0` from the same Allison series (out of sample; fitted
 **Formatter (decided)**
 
 Specifier list inspired by `Time#strftime`; the method is `format`.
-No `strftime` alias. No `%P`/`%Q`/`%R`. Unknown tokens pass through.
+No `strftime` alias. No `%P`/`%Q`/`%R`. `%Z` is the clock name
+(MXT or MTC), not a timezone or longitude. Unknown tokens pass
+through. Longitude/LMST stays deferred.
 
 ```
 md.format(fmt)            # date + MXT for %H/%M/%S/%X

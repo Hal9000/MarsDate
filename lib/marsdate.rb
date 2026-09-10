@@ -75,9 +75,10 @@ class MarsDateTime
       "#<#{@scale.to_s.upcase} #{self}>"
     end
 
-    # Specifier list inspired by Time#strftime. %H/%M/%S/%X are this clock.
+    # Specifier list inspired by Time#strftime. %H/%M/%S/%X are this clock;
+    # %Z is the clock name (MXT or MTC), not a timezone.
     def format(fmt)
-      @parent.send(:format_with, fmt, hour, min, sec)
+      @parent.send(:format_with, fmt, hour, min, sec, @scale.to_s.upcase)
     end
   end
 
@@ -199,11 +200,11 @@ class MarsDateTime
   end
 
   def format_mtc(fmt = nil)
-    fmt ? format_with(fmt, @mtc_hour, @mtc_min, @mtc_sec) : mtc.to_s
+    fmt ? format_with(fmt, @mtc_hour, @mtc_min, @mtc_sec, 'MTC') : mtc.to_s
   end
 
   def format_mxt(fmt = nil)
-    fmt ? format_with(fmt, @mxt_hour, @mxt_min, @mxt_sec) : mxt.to_s
+    fmt ? format_with(fmt, @mxt_hour, @mxt_min, @mxt_sec, 'MXT') : mxt.to_s
   end
 
   def leap?
@@ -271,7 +272,7 @@ class MarsDateTime
   end
   private_class_method :civil
 
-  def format_with(fmt, hour, min, sec)
+  def format_with(fmt, hour, min, sec, clock)
     pieces = fmt.to_s.scan(/(%.|[^%]+)/).flatten
     final = ''
     zmonth = '%02d' % @month
@@ -301,6 +302,7 @@ class MarsDateTime
       when '%x'; final << "#{@year}/#{zmonth}/#{zsol}"
       when '%X'; final << "#{zhh}:#{zmm}:#{zss}"
       when '%Y'; final << @year.to_s
+      when '%Z'; final << clock
       when '%n'; final << "\n"
       when '%t'; final << "\t"
       when '%%'; final << '%'

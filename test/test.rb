@@ -76,6 +76,12 @@ class MarsDateTest < Minitest::Test
     assert_equal '13', m.mxt.format('%H')
     assert_equal '12', m.format_mtc('%H')
     assert_equal '12', m.mtc.format('%H')
+    assert_equal 'MXT', m.format('%Z')
+    assert_equal 'MXT', m.mxt.format('%Z')
+    assert_equal 'MTC', m.format_mtc('%Z')
+    assert_equal 'MTC', m.mtc.format('%Z')
+    assert_equal '13:00:00 MXT', m.format('%H:%M:%S %Z')
+    assert_equal '12:39:07 MTC', m.format_mtc('%H:%M:%S %Z')
     assert_equal m.year, m.mxt.year
     assert_equal m.month_name, m.mtc.month_name
     refute_respond_to m, :strftime
