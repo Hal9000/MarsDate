@@ -82,8 +82,8 @@ class MarsDateTest < Minitest::Test
 
     m = MarsDateTime.new(DateTime.new(2026, 8, 13, 0, 6, 56))
     assert_equal [1077, 23, 6], [m.year, m.month, m.sol]
-    assert_in_delta 1.0, m.mtc_hour + m.mtc_min / 60.0 + m.mtc_sec / 3600.0,
-                   2.0 / 3600.0
+    mtc_hours = m.mtc_hour + m.mtc_min / 60.0 + m.mtc_sec / 3600.0
+    assert_in_delta 1 + 6 / 60.0 + 22 / 3600.0, mtc_hours, 2.0 / 3600.0
   end
 
   def test_offset_independent
