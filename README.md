@@ -5,6 +5,16 @@
 This library is based on the Martian Common Era calendar created by Hal Fulton.
 Its functionality closely follows that of Ruby's Time class.
 
+**Code vs intended clock.** The implementation still treats Earth
+`0001-01-22 00:00:00` UTC as Mars 1/1/1 00:00. That is not Coordinated
+Mars Time. A rewrite is planned; agreed rules are in
+[`design-issues.md`](design-issues.md) (findings in
+[`ai-notes.txt`](ai-notes.txt)). In short: 00:00 will be Airy-0 mean
+midnight (**MTC**); **MXT** is the same instant in SI hours (day to
+~24:39); 1/1/1 is the sol that contains the year-1 northern vernal
+equinox; Earth ymdhms of that midnight is a published counterpart, not
+the converter’s input.
+
 ## Methods... (FIXME later)
 
 
