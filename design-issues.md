@@ -14,12 +14,13 @@ Status key: **must decide** · **decide soon** · **can wait** · **no design ne
 - **1.** 00:00 is official MTC (Airy-0 mean midnight). Not a slid
   Earth-midnight epoch.
 - **5.** Keep both clocks as *views* of one SI duration since MTC
-  midnight. Do not store two parallel HMS fields. Naming undecided:
-  stretched/MTC vs SI, unstretched, or **extended** (24:39 clock:
-  extend the *day*, not the units). “Canonical” is a poor label.
-  Wanted: a 3-letter complement to MTC. Candidates: **MXT** (Mars
-  eXtended Time), **MTE** (Mars Time Extended). Avoid **MET** (NASA
-  Mission Elapsed Time) and **MST** (Airy Mean Time / Earth MST).
+  midnight. Do not store two parallel HMS fields.
+- **Names:** **MTC** (Coordinated Mars Time, stretched 24h) and
+  **MXT** (Mars eXtended Time, SI units, day runs to ~24:39).
+  Not “canonical.” Avoid MET and MST.
+- **API leaning:** mark both (no unmarked `hr` / `%H`). Breakage
+  is acceptable (essentially no dependents). Formatter shape
+  still open (clock views vs two methods vs `clock:`).
 
 
 ## Must decide before a real fix
@@ -43,7 +44,7 @@ and still not be MTC.
 Split:
 
 - **Clock** — Earth instant → JD_TT → MSD → MTC (NASA/Allison).
-  Time of day *is* MTC (24 stretched hours). Canonical 24:39, if kept,
+  Time of day *is* MTC (24 stretched hours). MXT, if kept,
   is another readout of the same fraction of a sol.
 - **Calendar** — integer MSD (which sol) → MCE year/month/sol with
   the existing leap rules.
@@ -75,11 +76,11 @@ compatibility flag / old-epoch constructor required?
 
 ## Decide soon (not blocking a first MTC-based rewrite)
 
-### 5. Canonical 24:39 clock — decided: keep as a view
+### 5. Second clock — decided: MXT as a view
 
 Keep both clocks. Store one SI quantity (real ms since MTC midnight,
-or the fractional part of MSD). Print/retrieve as stretched 24h
-(MTC) or as canonical 24:39 (SI hours/minutes/seconds).
+or the fractional part of MSD). Print/retrieve as MTC (stretched
+24h) or MXT (SI hours/minutes/seconds, day to ~24:39).
 
 These are not two midnights. They are two rulers from the same 00:00.
 No physical inconsistency if both are derived on demand from the
@@ -88,8 +89,8 @@ separately (that is how they can disagree today).
 
 **Open (API):** `MarsDateTime.new(y, m, d, h, min, s)` is then
 ambiguous. A keyword with a default is enough, e.g.
-`clock: :stretched` (MTC) or `clock: :canonical`, rather than a
-7th positional argument.
+`clock: :mtc` or `clock: :mxt`, rather than a 7th positional
+argument.
 
 That does not finish the job. Unmarked accessors (`hr` / `min` /
 `sec`) and `strftime` `%H:%M:%S` still have to mean one scale —
@@ -97,12 +98,12 @@ unless **both** scales are marked and there is no default `hr`/`%H`.
 Library has essentially no dependents, so dropping unmarked names
 is acceptable (not a serious compatibility concern).
 
-Leaning: mark both. Accessors like `mtc_hour` / `canonical_hour`
-(and minutes/seconds). `to_s` prints both, labeled.
+Leaning: mark both. Accessors like `mtc_hour` / `mxt_hour`.
+`to_s` prints both, labeled.
 
 `strftime` is a C/Ruby Time leftover; `%H` is unmarked. Options
-(see discussion): two methods (`format_mtc` / `format_canonical`);
-one method plus `clock:`; clock-view objects (`mtc.strftime`);
+(see discussion): two methods (`format_mtc` / `format_mxt`);
+one method plus `clock:`; clock-view objects (`md.mtc.strftime`);
 or drop format strings and return HMS / ISO-like strings.
 
 Arithmetic in seconds should stay SI (or sols), not “stretched
