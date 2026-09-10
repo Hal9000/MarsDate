@@ -23,9 +23,28 @@ Design: [`design-issues.md`](design-issues.md).
 
 Tests (Minitest): `ruby test/timescale_test.rb`,
 `ruby test/calendar_test.rb`, `ruby test/test.rb`.
+Changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
-## Methods... (FIXME later)
+## API (2.0)
 
+```ruby
+require 'marsdate'
+
+md = MarsDateTime.mxt(1069, 3, 9, 9, 44, 24)
+md.format('%A, %B %e, %Y %H:%M:%S %Z')
+# => "Sunday, M-February  9, 1069 09:44:24 MXT"
+md.format_mtc('%H:%M:%S %Z')
+# => "09:28:45 MTC"
+
+earth = DateTime.new(2010, 1, 1, 0, 0, 0)
+MarsDateTime.new(earth).to_s
+# Sunday, M-February 9, 1069 at MXT 09:44:24… / MTC 09:28:45…
+
+MarsDateTime.today   # current MCE sol at 00:00
+MarsDateTime.now     # current instant
+```
+
+Earth `DateTime` is the instant (`ajd`). `earth_date` comes back UTC.
 
 <pre>
 self.leap?(myear)  # class method for convenience

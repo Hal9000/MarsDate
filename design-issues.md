@@ -1,12 +1,11 @@
-# Design decisions before MarsDateTime can be “fixed”
+# Design decisions for MarsDateTime 2.0
 
-Some defects are ordinary bugs. The clock/calendar core is not: it
-cannot be rewritten coherently until the object’s *meaning* is decided.
+The clock/calendar core is implemented. Sections below the
+established list are the review record (what we decided and why).
+They are not a backlog of open design.
 
 Related: `ai-notes.txt` (findings), `test/probe_marsdate.rb` (probes),
-`conversation.md` (review thread).
-
-Status key: **must decide** · **decide soon** · **can wait** · **no design needed**
+`conversation.md` (review thread), `timezones.md` (parked).
 
 
 ## Established decisions
@@ -114,13 +113,13 @@ Year-1 `Ls=0` from the same Allison series (out of sample; fitted
   (Julian civil dates in Ruby). ΔT at 1 CE is a few hours; do
   not treat these captions as final.
 
-**Still open**
+**Still parked (not 2.0)**
 
-- Earth `DateTime` with a non-zero offset: honor the instant, or
-  treat the digits as UTC? (parked)
-- Leap `/500`, Darian (deferred)
-- Longitude / LMST / `Airy+N`: theory in [`timezones.md`](timezones.md)
-  (parked; not needed in the foreseeable future)
+- Leap `/500`, Darian
+- Longitude / LMST / `Airy+N`: [`timezones.md`](timezones.md)
+
+Earth `DateTime` offset: **honor the instant** (`ajd`). `earth_date`
+is UTC (offset 0). Same instant, two offsets → same MSD.
 
 **Formatter (decided)**
 
@@ -226,12 +225,10 @@ Arithmetic in seconds should stay SI (or sols), not “stretched
 seconds.” Round-trip each display through the store without going
 through the other display’s rounded HMS.
 
-### 6. Earth DateTime with a non-zero offset
+### 6. Earth DateTime with a non-zero offset — decided: honor the instant
 
-Honor `offset` (treat the value as a real instant), or document that
-the Y/M/D/h/m/s numbers are taken as UTC? Today the code ignores
-offset and uses the wall clock, so the same instant converts two
-ways.
+`TimeScale.jd_ut` uses `ajd`. Same instant, two offsets → same MSD.
+`earth_date` is returned as UTC.
 
 ### 7. Precision (TT vs UTC) — decided: TT, vendored table, no gem required
 
@@ -263,19 +260,24 @@ ambiguous until MCE sol boundaries match Airy-0 midnight. MSD/MTC
 
 ### 11. Later API
 
-Longitude / LMST / `Airy+N`: see `timezones.md` (parked). YAML ivar names. `format` nits
-(`%s` is this clock’s seconds, not Unix; trailing `%` drops).
-CLI calendar year and `m2e` time are done.
+Longitude / LMST / `Airy+N`: see `timezones.md` (parked).
+`%s` is this clock’s seconds, not Unix. Trailing `%` in `format`
+is a literal `%`. YAML is `@msd`. CLI calendar year and `m2e`
+time are done.
 
 
-## No design needed (ordinary bugs)
+## Ordinary bugs (2.0 status)
 
-These do not define Mars time and can be fixed anytime:
+Done (do not re-open):
 
-- `check_ymshms` allows Taurus 26–28 in leap years
-- Stretched seconds can round to 60
-- `Date` is rejected by `-` and `<=>` even though the constructor accepts it
-- CLI calendar arity; `m2e` ignores `hh:mm:ss`
-- `to_yaml_properties` names `@myear` / `@msme` (actual: `@year` / `@mems`)
-- Sub-second truncation on Earth↔Mars round-trips (once the clock
-  definition is fixed, do this in the same rewrite)
+- Taurus sols past 24/25 rejected on construct
+- `hours_to_hms` does not emit second 60
+- `Date` works with `-` and `<=>`
+- CLI `calendar yyyy`; `m2e` keeps HMS as MXT
+- `to_yaml_properties` is `@msd`
+- Earth↔Mars round-trips in the Minitest suites (sub-second)
+- `format("foo%")` keeps the trailing `%`
+
+Not a 2.0 blocker:
+
+- Leap `/500`, Darian, LMST (see parked list)
