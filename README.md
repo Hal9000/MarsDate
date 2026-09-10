@@ -19,8 +19,9 @@ the converter’s input.
 MSD/MTC/MXT from an Earth `DateTime`. `MarsDateTime::Calendar`
 (`lib/marsdate/calendar.rb`) maps MCE year/month/sol onto
 `floor(MSD) − EPOCH_MSD` (`EPOCH_MSD = −665773`). Neither is used
-by `MarsDateTime` constructors yet. Tests:
-`ruby test/timescale_test.rb` and `ruby test/calendar_test.rb`.
+by `MarsDateTime` constructors yet. Tests are Minitest (`Minitest::Test`,
+not spec): `ruby test/timescale_test.rb`, `ruby test/calendar_test.rb`,
+`ruby test/test.rb`.
 
 ## Methods... (FIXME later)
 
@@ -87,7 +88,7 @@ Read more about this below.
 
 What needs doing here:
   - Restructure the project tree
-  - Tests are plain Ruby (`ruby test/test.rb`); no shoulda
+  - Tests are Minitest (`ruby test/test.rb`); no shoulda or rspec
   - Clean up the source
   - Add some executables (mcal, etc.)
   - Add extensive documentation to this README
