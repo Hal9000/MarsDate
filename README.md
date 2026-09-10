@@ -87,7 +87,7 @@ Read more about this below.
 
 What needs doing here:
   - Restructure the project tree
-  - Change tests from shoulda to rspec
+  - Tests are plain Ruby (`ruby test/test.rb`); no shoulda
   - Clean up the source
   - Add some executables (mcal, etc.)
   - Add extensive documentation to this README
