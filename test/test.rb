@@ -258,6 +258,21 @@ class MarsDateTest < Minitest::Test
     assert_equal '00', m.format_mtc('%H')
     assert_equal '00:00:00', m.format('%X')
     assert_equal '%P', m.format('%P')
+    assert_equal 'foo%', m.format('foo%')
+    assert_equal '%', m.format('%')
+    assert_equal 'x%', m.format('x%%')
+  end
+
+  def test_date_is_a_valid_operand
+    d = Date.new(2010, 1, 1)
+    m = MarsDateTime.new(d)
+    assert_in_delta 0, m - d, 1e-9
+    assert_equal 0, m <=> d
+  end
+
+  def test_taurus_past_end_is_rejected
+    assert_raises(ArgumentError) { MarsDateTime.new(1, 24, 26) }
+    assert_raises(ArgumentError) { MarsDateTime.new(1, 24, 28) }
   end
 
   def test_comparisons

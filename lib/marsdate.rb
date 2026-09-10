@@ -273,7 +273,7 @@ class MarsDateTime
   private_class_method :civil
 
   def format_with(fmt, hour, min, sec, clock)
-    pieces = fmt.to_s.scan(/(%.|[^%]+)/).flatten
+    pieces = fmt.to_s.scan(/(%%|%.|%|[^%]+)/).flatten
     final = ''
     zmonth = '%02d' % @month
     zsol = '%02d' % @sol
