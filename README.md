@@ -8,7 +8,8 @@ Its functionality closely follows that of Ruby's Time class.
 **Clock (2.0).** `MarsDateTime` stores one MSD. 00:00 is Airy-0 mean
 midnight (**MTC**). **MXT** is the same instant in SI hours (day to
 ~24:39). Civil constructors: `mxt(...)` / `new(y,m,sol,h,min,sec)`
-(MXT), `mtc(...)`, `at(msd)`. Views: `md.mxt` / `md.mtc`.
+(MXT), `mtc(...)`, `at(msd)`. Views: `md.mxt` / `md.mtc`. `format(fmt)` is date + MXT;
+`format_mtc(fmt)` / `md.mtc.format` for MTC. No `strftime`.
 1/1/1 is the sol that contains the year-1 northern vernal equinox
 (`EPOCH_MSD = −665773`). Earth time of that midnight is a caption
 (~0001-01-23 13:40, treating TT as UT), not the converter’s input.
@@ -47,8 +48,10 @@ initialize(params)
 self.mxt(y, m, sol, h=0, min=0, sec=0)
 self.mtc(y, m, sol, h=0, min=0, sec=0)
 self.at(msd)            # from_msd is an alias
-md.mxt / md.mtc         # views: hour, min, sec, to_s, strftime
-format_mtc / format_mxt
+md.mxt / md.mtc         # views: date delegates, hour/min/sec, to_s, format
+format(fmt)             # date + MXT (%H). Inspired by Time#strftime.
+format_mxt / format_mtc # no arg: HMS; with fmt: same table, that clock
+md.mxt.format(fmt) / md.mtc.format(fmt)
 
 -(other)    # MarsDateTime, Date, DateTime, Integer, Float
 +(sols)
@@ -56,8 +59,7 @@ format_mtc / format_mxt
 
 earth_date
 
-strftime(fmt)   # Temporary: %H/%M/%S = MTC, %P/%Q/%R = MXT
-                # Specifiers are as follows:
+format(fmt)     # Specifiers (inspired by Time#strftime):
 
   %a  @day_of_week[0..2]
   %A  @day_of_week
@@ -70,8 +72,8 @@ strftime(fmt)   # Temporary: %H/%M/%S = MTC, %P/%Q/%R = MXT
   %j  @year_sol.to_s
   %m  zmonth  # @month.to\_s
   %M  zmm
-  %s  mtc_sec (integer)
-  %S  zss   # MTC seconds
+  %s  seconds of this clock (integer)
+  %S  zss   # seconds of this clock
   %u  (@dow + 1).to_s
   %U  (@year_sol/7 + 1).to_s
   %w  @dow.to_s
@@ -81,9 +83,6 @@ strftime(fmt)   # Temporary: %H/%M/%S = MTC, %P/%Q/%R = MXT
   %n  "\n"
   %t  "\t"
   %%  "%"
-  %P  mxt_hour
-  %Q  mxt_min
-  %R  mxt_sec
 </pre>
 
 

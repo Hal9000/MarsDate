@@ -160,13 +160,13 @@ section "earth_date of 1 MXT second"
 m = MarsDateTime.new(1,1,1,0,0,1)
 puts "1 second MXT: msd=#{m.msd} earth=#{m.earth_date}"
 
-section "strftime %s, comments, trailing percent"
+section "format %s, unimplemented tokens, trailing percent"
 m = MarsDateTime.new(1,1,1,12,34,45)
-puts "%H=#{m.strftime('%H')} (MTC) %P=#{m.strftime('%P')} (MXT)"
-puts "%s=#{m.strftime('%s')}"
-puts "%I unimplemented: #{m.strftime('%I')}"
+puts "format %H=#{m.format('%H')} (MXT) format_mtc %H=#{m.format_mtc('%H')}"
+puts "%s=#{m.format('%s')}"
+puts "%I unimplemented: #{m.format('%I')}"
 m = MarsDateTime.new(1,1,1)
-puts "strftime end percent: [#{m.strftime("foo%")}]"
+puts "format end percent: [#{m.format("foo%")}]"
 
 section "DateTime.now fractional seconds"
 dt = DateTime.now
