@@ -16,8 +16,11 @@ equinox; Earth ymdhms of that midnight is a published counterpart, not
 the converter’s input.
 
 `MarsDateTime::TimeScale` (`lib/marsdate/timescale.rb`) computes
-MSD/MTC/MXT from an Earth `DateTime` (not yet used by `MarsDateTime`
-constructors). Tests: `ruby test/timescale_test.rb`.
+MSD/MTC/MXT from an Earth `DateTime`. `MarsDateTime::Calendar`
+(`lib/marsdate/calendar.rb`) maps MCE year/month/sol onto
+`floor(MSD) − EPOCH_MSD` (`EPOCH_MSD = −665773`). Neither is used
+by `MarsDateTime` constructors yet. Tests:
+`ruby test/timescale_test.rb` and `ruby test/calendar_test.rb`.
 
 ## Methods... (FIXME later)
 

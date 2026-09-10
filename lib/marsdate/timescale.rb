@@ -176,6 +176,7 @@ class MarsDateTime
     def epoch_report
       # Allison Ls is fitted for ~1874–2127; year 1 is an extrapolation.
       # Seed the search at the article’s “late January of Year 1.”
+      # Calendar::EPOCH_MSD is the frozen floor of this search.
       hint = DateTime.new(1, 1, 22, 12, 0, 0)
       around = hint.ajd.to_f
       eq_tt = vernal_equinox_jd_tt(around)
