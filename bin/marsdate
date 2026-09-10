@@ -70,8 +70,8 @@ end
 
 class CalendarHTML
   def month_header(n)
-    @out.puts "<tr><td colspan=7"
-    @out.puts "<b><center><font size=4 face=arial color=red>#{MarsDateTime::Months[n]}</font><center></b>"
+    @out.puts "<tr><td colspan=7>"
+    @out.puts "<b><center><font size=4 face=arial color=red>#{MarsDateTime::Months[n]}</font></center></b>"
     @out.puts "</td></tr>"
     @out.puts "<tr bgcolor=#FFA833>"
     @out.puts "<td width=3%><font size=3 face='arial'>Sun</font></td>"
@@ -81,7 +81,6 @@ class CalendarHTML
     @out.puts "<td width=3%><font size=3 face='arial'>Thu</font></td>"
     @out.puts "<td width=3%><font size=3 face='arial'>Fri</font></td>"
     @out.puts "<td width=3%><font size=3 face='arial'>Sat</font></td>"
-    @out.puts "</font>"
     @out.puts "</tr>"
   end
 
