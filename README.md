@@ -458,21 +458,21 @@ distinguish the two. To be formal about year, we can always say "the year
 1071 MCE."
 
 <p>
-So given what we have so far, we can calculate that this past New Year's Day,
-(January 1, 2010) was the Martian date Tuesday, M-February 11, 1069 MCE.
-For another example: July 4, 2011 would be Thursday, the 13th of Aries (still
-in M-year 1069). The next Martian New Year (January 1, 1070 MCE) will be on
-September 13, 2011.
+So given what we have so far, we can calculate (at Earth midnight UTC)
+that January 1, 2010 was Sunday, M-February 9, 1069 MCE — MXT 09:44:24 /
+MTC 09:28:45. For another example: July 4, 2011 at 00:00 UTC is Tuesday,
+the 11th of Aries (still M-year 1069) — MXT 17:24:43 / MTC 16:56:46.
+September 13, 2011 at 00:00 UTC is Monday, Taurus 24, 1069 — MXT 19:53:11 /
+MTC 19:21:16. The next Martian New Year (1/1/1070 MCE at official midnight)
+falls on September 14, 2011, 05:25:58 UTC.
 
 <p>
-But be aware that I'm cheating when I say that some Earthly date is "the same"
-as some Martian date. After all, even on Earth we don't agree on what day it 
-is &mdash; for people in the USA, it's already "tomorrow" in some other parts
-of the world. In reality, a Martian date <i>overlaps</i> with an Earthly date.
-The crude conversion that I use is to take the beginning point of the date in 
-one calendar and ask: In what day (in the other calendar) does this timepoint 
-fall? But if you take into account timezones on Earth (and on Mars!), you will 
-occasionally disagree by a day.
+A Martian date still <i>overlaps</i> an Earthly date: even on Earth we
+don't agree on what day it is &mdash; for people in the USA, it's already
+"tomorrow" in some other parts of the world. The library no longer uses
+the old “same calendar day” pairing. It stores one MSD; 00:00 is Airy-0
+mean midnight (MTC). MXT is the same instant in SI hours. Timezones on
+Earth (and longitude on Mars) can still shift the Earth caption by a day.
 
 <p>
 A natural question is: What holidays might be associated with this kind of 
@@ -516,8 +516,10 @@ more like Easter than Christmas.
 <p>
 I can imagine that "Viking Day" might be celebrated on Mars. The Viking lander
 was the first successful landing by a probe on Mars on July 20, 1976 (which
-itself was the anniversary of the Apollo 11 moon landing). This corresponds
-to the date Virgo 12, 1051 MCE (which was a Martian Tuesday).
+itself was the anniversary of the Apollo 11 moon landing). That UTC date is
+still Virgo 12, 1051 MCE, a Martian Tuesday. At Earth midnight UTC the clocks
+read MXT 07:17:53 / MTC 07:06:10; at the landing time 11:53 UTC they read
+MXT 19:10:53 / MTC 18:40:05.
 
 <p>
 It might make sense to celebrate the winter solstice on Mars, as every culture
