@@ -8,6 +8,10 @@ direct probes on Ruby 3.2.3 (2026-08-12). Re-run the probes with:
 
     ruby test/probe_marsdate.rb
 
+Design decisions after this review (MTC midnight, MXT, epoch as a
+Mars instant, TT, reject-on-construct, etc.) are recorded in
+design-issues.md. The code has not been rewritten yet.
+
 
 1. Earth–Mars conversion
 ------------------------
