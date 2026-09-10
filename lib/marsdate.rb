@@ -34,6 +34,43 @@ class MarsDateTime
   alias myear year
   alias day  sol
 
+  # Named-clock readout of one instant. MarsDateTime.mxt(...) constructs;
+  # md.mxt reads. %H/%M/%S on the view are this clock.
+  class ClockView
+    attr_reader :scale
+
+    def initialize(parent, scale)
+      @parent = parent
+      @scale = scale
+    end
+
+    def hour
+      @scale == :mxt ? @parent.mxt_hour : @parent.mtc_hour
+    end
+
+    def min
+      @scale == :mxt ? @parent.mxt_min : @parent.mtc_min
+    end
+
+    def sec
+      @scale == :mxt ? @parent.mxt_sec : @parent.mtc_sec
+    end
+
+    def to_s
+      TimeScale.format_hms(hour, min, sec)
+    end
+
+    def inspect
+      "#<#{@scale.to_s.upcase} #{self}>"
+    end
+
+    def strftime(fmt)
+      # %H/%M/%S are this clock; %P/%Q/%R are the other.
+      alt = @scale == :mxt ? @parent.mtc : @parent.mxt
+      @parent.send(:strftime_with, fmt, hour, min, sec, alt.hour, alt.min, alt.sec)
+    end
+  end
+
   def self.leap?(myear)
     Calendar.leap?(myear)
   end
@@ -51,9 +88,21 @@ class MarsDateTime
   end
 
   def self.from_msd(msd)
+    at(msd)
+  end
+
+  def self.at(msd)
     obj = allocate
     obj.send(:init_from_msd, msd)
     obj
+  end
+
+  def self.mxt(year, month, sol, hour = 0, min = 0, sec = 0)
+    civil(year, month, sol, hour, min, sec, :mxt)
+  end
+
+  def self.mtc(year, month, sol, hour = 0, min = 0, sec = 0)
+    civil(year, month, sol, hour, min, sec, :mtc)
   end
 
   def self.now
@@ -71,11 +120,11 @@ class MarsDateTime
     from_msd(msd)
   end
 
-  def initialize(*params, clock: :mxt)
+  def initialize(*params)
     n = params.size
     case n
     when 3..6
-      init_yms(*params, clock: clock)
+      init_yms(*params, clock: :mxt)
     when 0
       init_from_msd(TimeScale.msd(DateTime.now))
     when 1
@@ -90,6 +139,14 @@ class MarsDateTime
     else
       raise ArgumentError, "Bad params: #{params.inspect}"
     end
+  end
+
+  def mxt
+    ClockView.new(self, :mxt)
+  end
+
+  def mtc
+    ClockView.new(self, :mtc)
   end
 
   def as_json(_options = {})
@@ -124,11 +181,11 @@ class MarsDateTime
   end
 
   def format_mtc
-    TimeScale.format_hms(@mtc_hour, @mtc_min, @mtc_sec)
+    mtc.to_s
   end
 
   def format_mxt
-    TimeScale.format_hms(@mxt_hour, @mxt_min, @mxt_sec)
+    mxt.to_s
   end
 
   def leap?
@@ -165,7 +222,7 @@ class MarsDateTime
   end
 
   def +(sols)
-    MarsDateTime.from_msd(@msd + sols.to_f)
+    MarsDateTime.at(@msd + sols.to_f)
   end
 
   def <=>(other)
@@ -184,17 +241,30 @@ class MarsDateTime
   end
 
   def strftime(fmt)
+    # Temporary unmarked %H = MTC; %P = MXT. Prefer md.mtc / md.mxt.
+    strftime_with(fmt, @mtc_hour, @mtc_min, @mtc_sec,
+                  @mxt_hour, @mxt_min, @mxt_sec)
+  end
+
+  def self.civil(year, month, sol, hour, min, sec, clock)
+    obj = allocate
+    obj.send(:init_yms, year, month, sol, hour, min, sec, clock: clock)
+    obj
+  end
+  private_class_method :civil
+
+  def strftime_with(fmt, hour, min, sec, alt_hour, alt_min, alt_sec)
     str = fmt.dup
     pieces = str.scan(/(%.|[^%]+)/).flatten
     final = ''
     zmonth = '%02d' % @month
     zsol = '%02d' % @sol
-    zhh = '%02d' % @mtc_hour
-    zmm = '%02d' % @mtc_min
-    zss = '%02d' % @mtc_sec.to_i
-    zhc = '%02d' % @mxt_hour
-    zmc = '%02d' % @mxt_min
-    zsc = '%02d' % @mxt_sec.to_i
+    zhh = '%02d' % hour
+    zmm = '%02d' % min
+    zss = '%02d' % sec.to_i
+    zhc = '%02d' % alt_hour
+    zmc = '%02d' % alt_min
+    zsc = '%02d' % alt_sec.to_i
 
     pieces.each do |piece|
       case piece
@@ -209,7 +279,7 @@ class MarsDateTime
       when '%j'; final << @year_sol.to_s
       when '%m'; final << zmonth
       when '%M'; final << zmm
-      when '%s'; final << @mtc_sec.to_i.to_s
+      when '%s'; final << sec.to_i.to_s
       when '%S'; final << zss
       when '%u'; final << (@dow + 1).to_s
       when '%U'; final << (@year_sol / 7 + 1).to_s
@@ -229,6 +299,7 @@ class MarsDateTime
     end
     final
   end
+  private :strftime_with
 
   private
 
