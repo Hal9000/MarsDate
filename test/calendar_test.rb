@@ -160,15 +160,19 @@ module CalendarTests
   end
 
   def modern_earth_instant
-    # 2000-01-06 00:00 UTC is a Mars24 worked example (MTC 23:59:39).
+    # 2000-01-06 00:00 UTC is a Mars24 worked example (MTC 23:59:39,
+    # still the previous sol). Civil date is a regression pin on
+    # EPOCH_MSD + the MCE leap rule, not an independent authority.
     dt = DateTime.new(2000, 1, 6, 0, 0, 0)
     msd = TS.msd(dt)
-    y, m, d = Cal.ymd_from_msd(msd)
-    TestUtil.assert(y >= 1 && (1..24).include?(m), "civil date from MSD (#{y}/#{m}/#{d})")
-    TestUtil.assert_equal(Cal.ymd_from_msd(Cal.msd_midnight(y, m, d)), [y, m, d],
-                          'midnight of that civil date round-trips')
-    TestUtil.assert(Cal.sol_index(y, m, d) == msd.floor - Cal::EPOCH_MSD,
-                    'sol index = floor(MSD) − EPOCH_MSD')
+    TestUtil.assert_equal(Cal.ymd_from_msd(msd), [1063, 19, 21],
+                          '2000-01-06 00:00 UTC → MCE 1063/19/21')
+    TestUtil.assert_equal(Cal.sol_index(1063, 19, 21), msd.floor - Cal::EPOCH_MSD,
+                          'sol index = floor(MSD) − EPOCH_MSD')
+
+    dt2 = DateTime.new(2026, 8, 13, 0, 6, 56)
+    TestUtil.assert_equal(Cal.ymd_from_msd(TS.msd(dt2)), [1077, 23, 6],
+                          '2026-08-13 00:06:56 UTC → MCE 1077/23/6')
   end
 
   def epoch_report_agrees
