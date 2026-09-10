@@ -9,4 +9,6 @@ mean midnight (MTC). MXT is the same instant in SI hours.
 - Views: `md.mxt` / `md.mtc`; `format` (not `strftime`); `%Z` is the clock name
 - `today` is the current MCE sol at 00:00; `now` is the current instant
 - Year-1 Earth times are TT-as-UT captions (`epoch_caption`)
+- MTC remains in `[00:00, 24:00)` when rounding at a sol boundary
+- Calendar highlighting includes the year; CLI errors exit nonzero
 - See `README.md` and `design-issues.md`

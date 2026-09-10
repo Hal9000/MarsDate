@@ -335,7 +335,9 @@ class MarsDateTime
     @dow = Calendar.dow(@year, @month, @sol)
     @day_of_week = Week[@dow]
     frac = TimeScale.sol_fraction_of(@msd)
-    @mtc_hour, @mtc_min, @mtc_sec = TimeScale.hours_to_hms(frac * 24.0)
+    @mtc_hour, @mtc_min, @mtc_sec = TimeScale.hours_to_hms(
+      frac * 24.0, limit: 24
+    )
     @mxt_hour, @mxt_min, @mxt_sec = TimeScale.hours_to_hms(
       frac * SOL_SI_SECONDS / 3600.0
     )
