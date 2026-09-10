@@ -221,11 +221,9 @@ date and asks which Martian date that instant falls in. Results at
   Viking (actual landing ~11:53 UTC 1976-07-20) does not match the
   claimed Tuesday Virgo 12 at any hour on that Earth date.
 
-  Equinox tests in test/spec/marsdate_spec.rb apply .new_offset(-5)
-  and require diff < 1.0 sol. test/test.rb does not apply the offset
-  and allows diff < 1.5. Both pass because the conversion already
-  lands on 1/1 of the expected M-year; the offset only changes the
-  time of day (see 1.1).
+  Equinox checks in test/test.rb allow diff < 1.5 sol and do not
+  apply a timezone offset. (A former spec copy used
+  `.new_offset(-5)`, which Ruby ignores as an invalid offset.)
 
 
 6. What is not a bug (for this calendar)
@@ -258,17 +256,13 @@ date and asks which Martian date that instant falls in. Results at
 7. Tests (functionality of the suite, not the library)
 ------------------------------------------------------
 
-- test/test.rb subclasses MiniTest::Test. Current minitest 6 uses
-  Minitest (constant name change); the file does not load.
+- test/test.rb is Minitest::Test (loads). The minitest/spec copy
+  test/spec/marsdate_spec.rb was dropped: same cases, plus a
+  `.new_offset(-5)` that Ruby treats as a no-op, plus
+  `must_raise` that current minitest rejects.
 
-- test/spec/marsdate_spec.rb: `lambda { ... }.must_raise(RuntimeError)`
-  is old minitest/spec syntax and errors on current minitest
-  (`undefined method must_raise for Proc`). Other spec examples ran
-  (39 runs, 145 assertions, 0 failures, 1 error).
-
-- Spec vs shoulda disagree on the 1961-05-31 weekday test title
-  (“Martian Saturday” vs assertion of Friday) — title only, the
-  assertion is Friday in both files.
+- The old spec titled 1961-05-31 “Martian Saturday” but asserted
+  Friday (title only).
 
 
 8. Coordinated Mars Time (MTC) vs this library

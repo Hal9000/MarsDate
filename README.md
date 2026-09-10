@@ -15,6 +15,14 @@ midnight (**MTC**); **MXT** is the same instant in SI hours (day to
 equinox; Earth ymdhms of that midnight is a published counterpart, not
 the converter’s input.
 
+`MarsDateTime::TimeScale` (`lib/marsdate/timescale.rb`) computes
+MSD/MTC/MXT from an Earth `DateTime`. `MarsDateTime::Calendar`
+(`lib/marsdate/calendar.rb`) maps MCE year/month/sol onto
+`floor(MSD) − EPOCH_MSD` (`EPOCH_MSD = −665773`). Neither is used
+by `MarsDateTime` constructors yet. Tests are Minitest (`Minitest::Test`,
+not spec): `ruby test/timescale_test.rb`, `ruby test/calendar_test.rb`,
+`ruby test/test.rb`.
+
 ## Methods... (FIXME later)
 
 
@@ -80,7 +88,7 @@ Read more about this below.
 
 What needs doing here:
   - Restructure the project tree
-  - Change tests from shoulda to rspec
+  - Tests are Minitest (`ruby test/test.rb`); no shoulda or rspec
   - Clean up the source
   - Add some executables (mcal, etc.)
   - Add extensive documentation to this README

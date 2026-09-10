@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.files       = Find.find("lib").to_a + 
                   Find.find("bin").to_a + 
                   Find.find("test").to_a
+  s.add_development_dependency 'minitest', '~> 5.0'
   s.executables << "marsdate"
   s.homepage    = 'https://github.com/Hal9000/marsdate'
   s.post_install_message = "\n Success! Run executable 'marsdate' for help.\n "
