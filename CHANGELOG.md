@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1
+
+- Avoid warnings about string literals becoming frozen in future Ruby releases
+
 ## 2.0.0
 
 Breaking rewrite. `MarsDateTime` stores one MSD. 00:00 is Airy-0
