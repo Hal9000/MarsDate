@@ -26,6 +26,27 @@ Tests (Minitest): `ruby test/timescale_test.rb`,
 `ruby test/cli_test.rb`.
 Changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
+## Installation
+
+```sh
+gem install marsdate
+```
+
+## Development and release
+
+Install the development dependencies and run the complete test suite:
+
+```sh
+bundle install
+bundle exec rake
+```
+
+For a release, update `MarsDateTime::VERSION` in
+`lib/marsdate/version.rb` and the changelog, commit those changes, and run
+`./bump-gem` from a clean working tree. The script tests, builds, and verifies
+the packaged CLI without publishing. Review the resulting gem and publish the
+exact path printed by the script.
+
 ## API (2.0)
 
 ```ruby

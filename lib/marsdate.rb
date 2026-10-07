@@ -1,11 +1,10 @@
 require 'date'
 require 'json'
+require_relative 'marsdate/version'
 require_relative 'marsdate/timescale'
 require_relative 'marsdate/calendar'
 
 class MarsDateTime
-
-  VERSION = "2.0.0"
 
   include Comparable
 
