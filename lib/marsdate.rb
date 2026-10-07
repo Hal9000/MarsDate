@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'date'
 require 'json'
 require_relative 'marsdate/version'
@@ -273,7 +275,7 @@ class MarsDateTime
 
   def format_with(fmt, hour, min, sec, clock)
     pieces = fmt.to_s.scan(/(%%|%.|%|[^%]+)/).flatten
-    final = ''
+    final = String.new
     zmonth = '%02d' % @month
     zsol = '%02d' % @sol
     zhh = '%02d' % hour
